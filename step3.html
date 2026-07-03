@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>FUTURE CAR CRAFT — ボディカラーを選択</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="page-scroll">
+
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow--left"></div>
+  <div class="bg-glow bg-glow--right"></div>
+
+  <main class="step-stage">
+    <div class="step-header">
+      <p class="step-eyebrow">STEP 3 / 03</p>
+      <h1 class="step-title">ボディカラーを入力してください</h1>
+      <p class="step-sub">最後に、車体の色を自由に文字で入力すると未来車が完成します（2色以上を組み合わせるとマーブルなどの混ぜ方も選べます）</p>
+    </div>
+
+    <div class="car-preview" id="carPreview">
+      <div class="car-preview__glow" aria-hidden="true"></div>
+    </div>
+
+    <div class="prompt-box">
+      <input
+        type="text"
+        id="colorPrompt"
+        class="prompt-input"
+        placeholder="例：レーシングレッド、赤 × 黒、ゴールド..."
+        maxlength="80"
+        autocomplete="off"
+        aria-label="ボディカラー"
+      />
+      <p class="prompt-hint">思い描いているボディカラーを言葉で説明してください（候補は組み合わせて選べます）</p>
+      <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
+      <button type="button" class="suggestion-shuffle" id="shuffleBtn">
+        <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span>候補を入れ替える</span>
+      </button>
+
+      <div class="mix-row" id="mixRow" hidden>
+        <p class="mix-row__label">混ぜ方</p>
+        <div class="suggestion-list" id="mixOptions">
+          <button type="button" class="suggestion-chip mix-chip" data-mix="marble">マーブル</button>
+          <button type="button" class="suggestion-chip mix-chip" data-mix="gradient">グラデーション</button>
+          <button type="button" class="suggestion-chip mix-chip" data-mix="twotone">ツートン</button>
+          <button type="button" class="suggestion-chip mix-chip" data-mix="stripe">ストライプ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-actions">
+      <a href="step2.html" class="btn-back">← BACK</a>
+      <button type="button" class="btn-next" id="nextBtn" disabled>
+        <span>COMPLETE</span>
+      </button>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span class="footer__dot"></span>
+    <span class="footer__dot"></span>
+    <span class="footer__dot footer__dot--active"></span>
+  </footer>
+
+  <script>
+    const promptInput = document.getElementById('colorPrompt');
+    const nextBtn = document.getElementById('nextBtn');
+    const carPreview = document.getElementById('carPreview');
+    const suggestionList = document.getElementById('suggestionList');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const mixRow = document.getElementById('mixRow');
+    const mixOptions = document.getElementById('mixOptions');
+
+    // よく使う色名（車の塗装名＋一般的な色名）を hex に対応させる。
+    // 長い名前ほど優先して部分一致させる（例：「シルバーメタリック」を「シルバー」より先に判定）。
+    const COLOR_NAME_MAP = {
+      'パールホワイト': '#f4f7fb',
+      'クリスタルブラック': '#12141a',
+      'シルバーメタリック': '#b8c1cc',
+      'ディープブルー': '#1a4dff',
+      'レーシングレッド': '#e21b2c',
+      'マットグレー': '#5c6470',
+      'シャンパンゴールド': '#d4af37',
+      'ネオングリーン': '#39ff14',
+      'ミントグリーン': '#38e0a8',
+      'スカイブルー': '#4fd0ff',
+      'ゴールド': '#d4af37',
+      'マゼンタ': '#ff2fa0',
+      'パープル': '#7b4fff',
+      'オレンジ': '#ff7a1a',
+      'イエロー': '#ffd400',
+      '黄色': '#ffd400',
+      '茶色': '#6b4226',
+      'ピンク': '#ff6fb0',
+      '水色': '#4fd0ff',
+      '白': '#f4f7fb',
+      '黒': '#12141a',
+      'シルバー': '#b8c1cc',
+      '銀': '#b8c1cc',
+      '青': '#1a4dff',
+      '赤': '#e21b2c',
+      'グレー': '#5c6470',
+      '灰色': '#5c6470',
+      '金': '#d4af37',
+      '緑': '#2ecc71',
+      '紫': '#7b4fff',
+    };
+    const COLOR_KEYS = Object.keys(COLOR_NAME_MAP).sort((a, b) => b.length - a.length);
+
+    // 辞書に無い単語（英語名や #hex、rgb() など）はブラウザに色として解釈させて判定する。
+    function resolveCssColor(text) {
+      const probe = document.createElement('span');
+      probe.style.color = '';
+      probe.style.color = text;
+      if (!probe.style.color) return null;
+      document.body.appendChild(probe);
+      const computed = getComputedStyle(probe).color;
+      document.body.removeChild(probe);
+      const nums = computed.match(/[\d.]+/g);
+      if (!nums) return null;
+      const [r, g, b] = nums.map((n) => Math.round(parseFloat(n)));
+      return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+    }
+
+    function resolveColorHex(word) {
+      const trimmed = word.trim();
+      if (!trimmed) return null;
+      const key = COLOR_KEYS.find((k) => trimmed.includes(k));
+      if (key) return COLOR_NAME_MAP[key];
+      return resolveCssColor(trimmed);
+    }
+
+    function getColorsFromText(text) {
+      return text
+        .split(COMBINE_SEPARATOR)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map(resolveColorHex)
+        .filter(Boolean);
+    }
+
+    // 現実的なカラー＋近未来らしい鮮やかなカラーを混ぜたプール。
+    const SUGGESTION_POOL = [
+      'パールホワイト', 'クリスタルブラック', 'シルバーメタリック', 'ディープブルー',
+      'レーシングレッド', 'マットグレー', 'シャンパンゴールド', 'ネオングリーン',
+      'マゼンタ', 'パープル', 'オレンジ', 'イエロー', 'ミントグリーン', 'スカイブルー',
+    ];
+    const SUGGESTION_COUNT = 6;
+    const COMBINE_SEPARATOR = ' × ';
+    const DEFAULT_HEX = '#8892a6';
+
+    let chips = [];
+    let mixMode = 'marble';
+
+    function pickRandomSuggestions(pool, count) {
+      const shuffled = [...pool];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled.slice(0, count);
+    }
+
+    function renderSuggestions() {
+      suggestionList.innerHTML = '';
+      pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT).forEach((label) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'suggestion-chip';
+        chip.dataset.value = label;
+        chip.textContent = label;
+        suggestionList.appendChild(chip);
+      });
+      chips = Array.from(suggestionList.querySelectorAll('.suggestion-chip'));
+      syncChipsFromText();
+    }
+
+    function updateNextState() {
+      nextBtn.disabled = promptInput.value.trim().length === 0;
+    }
+
+    function syncChipsFromText() {
+      const value = promptInput.value;
+      chips.forEach((chip) => {
+        chip.classList.toggle('is-active', value.includes(chip.dataset.value));
+      });
+    }
+
+    function syncMixButtons() {
+      Array.from(mixOptions.querySelectorAll('.mix-chip')).forEach((chip) => {
+        chip.classList.toggle('is-active', chip.dataset.mix === mixMode);
+      });
+    }
+
+    function applyColors() {
+      const value = promptInput.value.trim();
+      const colors = getColorsFromText(value);
+      mixRow.hidden = colors.length < 2;
+      syncMixButtons();
+
+      const previewColors = colors.length ? colors : [DEFAULT_HEX];
+      const mode = colors.length >= 2 ? mixMode : 'solid';
+      carPreview.style.setProperty(
+        '--car-color',
+        previewColors.length > 1 ? `linear-gradient(90deg, ${previewColors.join(', ')})` : previewColors[0]
+      );
+
+      try {
+        localStorage.setItem('fcc:selectedColor', value);
+        localStorage.setItem('fcc:selectedColorHexes', JSON.stringify(colors));
+        localStorage.setItem('fcc:selectedColorMix', mode);
+      } catch (e) {}
+    }
+
+    promptInput.addEventListener('input', () => {
+      updateNextState();
+      syncChipsFromText();
+      applyColors();
+    });
+
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !nextBtn.disabled) {
+        nextBtn.click();
+      }
+    });
+
+    suggestionList.addEventListener('click', (e) => {
+      const chip = e.target.closest('.suggestion-chip');
+      if (!chip) return;
+      const parts = promptInput.value
+        .split(COMBINE_SEPARATOR)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const idx = parts.indexOf(chip.dataset.value);
+      if (idx >= 0) {
+        parts.splice(idx, 1);
+      } else {
+        parts.push(chip.dataset.value);
+      }
+      promptInput.value = parts.join(COMBINE_SEPARATOR);
+      promptInput.dispatchEvent(new Event('input'));
+      promptInput.focus();
+    });
+
+    mixOptions.addEventListener('click', (e) => {
+      const chip = e.target.closest('.mix-chip');
+      if (!chip) return;
+      mixMode = chip.dataset.mix;
+      applyColors();
+    });
+
+    shuffleBtn.addEventListener('click', () => renderSuggestions());
+
+    renderSuggestions();
+
+    try {
+      const saved = localStorage.getItem('fcc:selectedColor');
+      const savedMix = localStorage.getItem('fcc:selectedColorMix');
+      if (savedMix) mixMode = savedMix;
+      if (saved) {
+        promptInput.value = saved;
+        updateNextState();
+        syncChipsFromText();
+      }
+      applyColors();
+    } catch (e) {}
+
+    nextBtn.addEventListener('click', () => {
+      const value = promptInput.value.trim();
+      if (!value) return;
+      window.location.href = 'complete.html';
+    });
+  </script>
+
+</body>
+</html>
