@@ -46,6 +46,13 @@
           <span>未選択</span>
         </span>
       </div>
+      <div class="summary-row">
+        <span class="summary-row__label">アートスタイル</span>
+        <span class="summary-row__value" id="rowStyle">
+          <span class="summary-row__icon" aria-hidden="true">🎨</span>
+          <span>写真（フォトリアル）</span>
+        </span>
+      </div>
     </div>
 
     <div class="ai-image" id="aiImageSection">
@@ -59,7 +66,7 @@
     </div>
 
     <div class="step-actions">
-      <a href="step3.html" class="btn-back">← BACK</a>
+      <a href="step4.html" class="btn-back">← BACK</a>
       <button type="button" class="btn-next" id="restartBtn">
         <span>RESTART</span>
       </button>
@@ -67,6 +74,7 @@
   </main>
 
   <footer class="footer">
+    <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot footer__dot--active"></span>
@@ -100,6 +108,7 @@
     try {
       colorHexes = JSON.parse(readStorage('fcc:selectedColorHexes') || '[]');
     } catch (e) {}
+    const styleLabel = readStorage('fcc:selectedStyle');
 
     const carPreview = document.getElementById('carPreview');
     if (colorHexes.length) {
@@ -133,9 +142,68 @@
       row.querySelector('span:last-child').textContent = colorLabel;
     }
 
+    if (styleLabel) {
+      document.getElementById('rowStyle').querySelector('span:last-child').textContent = styleLabel;
+    }
+
     // Pollinations の画像生成エンドポイントは GET リクエストの URL に
     // プロンプトを埋め込むだけで画像を直接返すため、サーバー側の処理なしで
     // <img> の src に組み込める。
+    // 画像生成モデルは日本語の形状名をそのまま渡してもほぼ理解できないため、
+    // 候補チップの語だけでも英語の説明句に変換してから渡す（未知の語はそのまま通す）。
+    const SHAPE_PROMPT_MAP = {
+      'ステーションワゴン': 'a futuristic station wagon',
+      'ピックアップトラック': 'a futuristic pickup truck',
+      'スポーツカー': 'a futuristic sports car',
+      'オープンカー': 'a futuristic convertible car',
+      'ミニバン': 'a futuristic minivan',
+      'ピックアップ': 'a futuristic pickup truck',
+      'クーペ': 'a futuristic coupe car',
+      'セダン': 'a futuristic sedan car',
+      'SUV': 'a futuristic SUV',
+      'UFO型': 'a flying-saucer-shaped hovering vehicle (UFO design)',
+      'UFO': 'a flying-saucer-shaped hovering vehicle (UFO design)',
+      '恐竜型': 'a dinosaur-shaped vehicle with organic scaly bodywork',
+      '恐竜': 'a dinosaur-shaped vehicle with organic scaly bodywork',
+      'ロボット型': 'a robot-shaped transforming vehicle',
+      'ロボット': 'a robot-shaped transforming vehicle',
+      '宇宙船型': 'a spaceship-shaped vehicle',
+      '宇宙船': 'a spaceship-shaped vehicle',
+      'カプセル型': 'a capsule-shaped pod vehicle',
+      'カプセル': 'a capsule-shaped pod vehicle',
+      '昆虫型': 'an insect-shaped vehicle with a segmented exoskeleton body',
+      '昆虫': 'an insect-shaped vehicle with a segmented exoskeleton body',
+      '貝殻型': 'a seashell-shaped vehicle with a spiral curved shell body',
+      '貝殻': 'a seashell-shaped vehicle with a spiral curved shell body',
+      '雲型': 'a cloud-shaped vehicle with a soft rounded fluffy body',
+      '雲': 'a cloud-shaped vehicle with a soft rounded fluffy body',
+      '流れ星型': 'a shooting-star-shaped streamlined vehicle with a glowing trail',
+      '流れ星': 'a shooting-star-shaped streamlined vehicle with a glowing trail',
+      'クラゲ型': 'a jellyfish-shaped vehicle with a translucent dome and flowing tentacle-like fins',
+      'クラゲ': 'a jellyfish-shaped vehicle with a translucent dome and flowing tentacle-like fins',
+      '隕石型': 'a meteorite-shaped rugged rocky vehicle',
+      '隕石': 'a meteorite-shaped rugged rocky vehicle',
+    };
+    const SHAPE_KEYS = Object.keys(SHAPE_PROMPT_MAP).sort((a, b) => b.length - a.length);
+
+    const FUEL_PROMPT_MAP = {
+      'ガソリン': 'gasoline-powered',
+      'ディーゼル': 'diesel-powered',
+      'プラグインハイブリッド': 'plug-in hybrid powered',
+      'ハイブリッド': 'hybrid powered',
+      '水素': 'hydrogen fuel cell powered',
+      'EV': 'electric powered',
+      '電気': 'electric powered',
+      'チョコレート': 'whimsically powered by chocolate',
+      '炭酸': 'whimsically powered by soda fizz',
+      '空気': 'powered by compressed air',
+      'コーヒー': 'whimsically powered by coffee',
+      '太陽光': 'solar powered',
+      '風力': 'wind powered',
+      'ドーナツ': 'whimsically powered by donuts',
+    };
+    const FUEL_KEYS = Object.keys(FUEL_PROMPT_MAP).sort((a, b) => b.length - a.length);
+
     const MIX_WORDS = {
       marble: 'marble swirl pattern',
       gradient: 'smooth gradient blend',
@@ -143,16 +211,67 @@
       stripe: 'racing stripe pattern',
     };
 
+    // 画風の指定は「油絵」なのに末尾が「professional photography」のままだと
+    // 矛盾してしまうため、スタイルが選ばれたときは既定の写真調の締めを丸ごと
+    // 置き換える。
+    const STYLE_PROMPT_MAP = {
+      '写真（フォトリアル）': 'photorealistic photograph, studio lighting, highly detailed, cinematic',
+      'フォトリアル': 'photorealistic photograph, studio lighting, highly detailed, cinematic',
+      '写真': 'photorealistic photograph, studio lighting, highly detailed, cinematic',
+      '油絵': 'oil painting style, visible brush strokes, rich textured canvas',
+      '水彩画': 'watercolor painting style, soft flowing pigments, paper texture',
+      '水彩': 'watercolor painting style, soft flowing pigments, paper texture',
+      '鉛筆画（スケッチ）': 'pencil sketch style, hand-drawn graphite shading, sketchbook paper',
+      '鉛筆画': 'pencil sketch style, hand-drawn graphite shading, sketchbook paper',
+      '鉛筆': 'pencil sketch style, hand-drawn graphite shading, sketchbook paper',
+      'スケッチ': 'rough sketch style, hand-drawn pencil lines',
+      'アニメ風': 'anime style illustration, cel-shaded, vibrant colors',
+      'アニメ': 'anime style illustration, cel-shaded, vibrant colors',
+      '3Dレンダー': '3D render, octane render, studio lighting, highly detailed',
+      'ピクセルアート': 'pixel art style, retro 8-bit video game aesthetic',
+      'サイバーパンク風': 'cyberpunk neon style, glowing neon lights, futuristic city backdrop',
+      'サイバーパンク': 'cyberpunk neon style, glowing neon lights, futuristic city backdrop',
+      'ネオン': 'neon glow style, vibrant neon lighting, dark background',
+      'ミニマル': 'minimalist design, flat colors, clean simple background',
+      'ステンドグラス': 'stained glass art style, colorful glass panel textures',
+      'ブループリント図面風': 'technical blueprint schematic style, line drawing on blueprint paper',
+      'ブループリント': 'technical blueprint schematic style, line drawing on blueprint paper',
+      'クレイアート': 'claymation style, stop-motion clay model texture',
+      'コンセプトアート': 'digital concept art, matte painting style, highly detailed',
+    };
+    const STYLE_KEYS = Object.keys(STYLE_PROMPT_MAP).sort((a, b) => b.length - a.length);
+    const DEFAULT_STYLE_CLAUSE = 'studio lighting, professional concept vehicle photography, highly detailed, cinematic';
+
+    function translatePart(word, map, keys) {
+      const trimmed = word.trim();
+      if (!trimmed) return null;
+      const key = keys.find((k) => trimmed.includes(k));
+      return key ? map[key] : trimmed;
+    }
+
+    function translateText(text, map, keys, joiner) {
+      if (!text) return null;
+      const parts = text
+        .split(' × ')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((part) => translatePart(part, map, keys));
+      return parts.length ? parts.join(joiner) : null;
+    }
+
     function buildImagePrompt() {
-      const shapePart = shapeLabel ? shapeLabel : 'near-future car';
-      const fuelPart = fuelLabel ? `, powered by ${fuelLabel}` : '';
+      const shapePart = translateText(shapeLabel, SHAPE_PROMPT_MAP, SHAPE_KEYS, ' combined with ')
+        || 'a futuristic vehicle';
+      const fuelPart = translateText(fuelLabel, FUEL_PROMPT_MAP, FUEL_KEYS, ' and ');
+      const fuelClause = fuelPart ? `, ${fuelPart}` : '';
       let colorPart = '';
       if (colorHexes.length > 1) {
         colorPart = `, painted in a ${MIX_WORDS[colorMix] || 'mixed color'} of ${colorLabel}`;
       } else if (colorLabel) {
         colorPart = `, painted in ${colorLabel}`;
       }
-      return `a sleek futuristic concept car shaped like ${shapePart}${fuelPart}${colorPart}, studio lighting, professional automotive photography, highly detailed, cinematic`;
+      const styleClause = translateText(styleLabel, STYLE_PROMPT_MAP, STYLE_KEYS, ', ') || DEFAULT_STYLE_CLAUSE;
+      return `${shapePart}, near-future concept design${fuelClause}${colorPart}, ${styleClause}`;
     }
 
     function buildImageUrl(prompt) {
@@ -194,6 +313,7 @@
         localStorage.removeItem('fcc:selectedColor');
         localStorage.removeItem('fcc:selectedColorHexes');
         localStorage.removeItem('fcc:selectedColorMix');
+        localStorage.removeItem('fcc:selectedStyle');
       } catch (e) {}
       window.location.href = 'index.html';
     });
