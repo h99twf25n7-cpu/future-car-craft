@@ -32,27 +32,6 @@
           <span>未選択</span>
         </span>
       </div>
-      <div class="summary-row" id="rowFuelWrap" hidden>
-        <span class="summary-row__label">燃料タイプ</span>
-        <span class="summary-row__value" id="rowFuel">
-          <span class="summary-row__icon" aria-hidden="true">—</span>
-          <span>未選択</span>
-        </span>
-      </div>
-      <div class="summary-row" id="rowColorWrap" hidden>
-        <span class="summary-row__label">ボディカラー</span>
-        <span class="summary-row__value" id="rowColor">
-          <span class="summary-row__swatch" aria-hidden="true"></span>
-          <span>未選択</span>
-        </span>
-      </div>
-      <div class="summary-row" id="rowStyleWrap" hidden>
-        <span class="summary-row__label">アートスタイル</span>
-        <span class="summary-row__value" id="rowStyle">
-          <span class="summary-row__icon" aria-hidden="true">🎨</span>
-          <span>写真（フォトリアル）</span>
-        </span>
-      </div>
     </div>
 
     <div class="ai-image" id="aiImageSection">
@@ -122,31 +101,6 @@
       const row = document.getElementById('rowShape');
       row.querySelector('.summary-row__icon').textContent = SHAPE_ICONS[shapeKey] || '🚗';
       row.querySelector('span:last-child').textContent = shapeLabel;
-    }
-
-    if (fuelLabel) {
-      document.getElementById('rowFuelWrap').hidden = false;
-      const row = document.getElementById('rowFuel');
-      row.querySelector('.summary-row__icon').textContent = fuelIcon;
-      row.querySelector('span:last-child').textContent = fuelLabel;
-    }
-
-    if (colorLabel) {
-      document.getElementById('rowColorWrap').hidden = false;
-      const row = document.getElementById('rowColor');
-      const swatch = row.querySelector('.summary-row__swatch');
-      if (colorHexes.length) {
-        swatch.style.background = colorHexes.length > 1
-          ? `linear-gradient(135deg, ${colorHexes.join(', ')})`
-          : colorHexes[0];
-        swatch.style.setProperty('--swatch-glow', colorHexes[0]);
-      }
-      row.querySelector('span:last-child').textContent = colorLabel;
-    }
-
-    if (styleLabel) {
-      document.getElementById('rowStyleWrap').hidden = false;
-      document.getElementById('rowStyle').querySelector('span:last-child').textContent = styleLabel;
     }
 
     // Pollinations の画像生成エンドポイントは GET リクエストの URL に
