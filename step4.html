@@ -17,7 +17,7 @@
     <div class="step-header">
       <p class="step-eyebrow">STEP 4 / 04</p>
       <h1 class="step-title">アートスタイルを入力してください</h1>
-      <p class="step-sub">完成イメージの画風を自由に文字で入力すると、生成される画像に反映されます（候補は組み合わせて選べます）</p>
+      <p class="step-sub">完成イメージの画風を自由に文字で入力すると、生成される画像に反映されます（候補は1つだけ選べます）</p>
     </div>
 
     <div class="prompt-box">
@@ -70,7 +70,6 @@
       'ステンドグラス', 'ブループリント図面風', 'クレイアート', 'コンセプトアート',
     ];
     const SUGGESTION_COUNT = 6;
-    const COMBINE_SEPARATOR = ' × ';
 
     let chips = [];
 
@@ -98,9 +97,9 @@
     }
 
     function syncChipsFromText() {
-      const value = promptInput.value;
+      const value = promptInput.value.trim();
       chips.forEach((chip) => {
-        chip.classList.toggle('is-active', value.includes(chip.dataset.value));
+        chip.classList.toggle('is-active', value === chip.dataset.value);
       });
     }
 
@@ -121,20 +120,13 @@
       }
     });
 
+    // アートスタイルは複数選択不可。候補チップをクリックすると、既存の選択を
+    // 置き換える（同じチップを再クリックすると選択解除）単一選択として動作する。
     suggestionList.addEventListener('click', (e) => {
       const chip = e.target.closest('.suggestion-chip');
       if (!chip) return;
-      const parts = promptInput.value
-        .split(COMBINE_SEPARATOR)
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const idx = parts.indexOf(chip.dataset.value);
-      if (idx >= 0) {
-        parts.splice(idx, 1);
-      } else {
-        parts.push(chip.dataset.value);
-      }
-      promptInput.value = parts.join(COMBINE_SEPARATOR);
+      const current = promptInput.value.trim();
+      promptInput.value = current === chip.dataset.value ? '' : chip.dataset.value;
       promptInput.dispatchEvent(new Event('input'));
       promptInput.focus();
     });

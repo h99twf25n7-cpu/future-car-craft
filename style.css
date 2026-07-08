@@ -570,6 +570,64 @@ html, body {
   letter-spacing: 0.08em;
 }
 
+/* Per-item strength / ratio sliders (10-step), shown when 2+ items are combined */
+.ratio-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 212, 255, 0.12);
+  width: 100%;
+}
+
+.ratio-row[hidden] {
+  display: none;
+}
+
+.ratio-row__label {
+  font-size: 0.75rem;
+  color: var(--clr-dim);
+  letter-spacing: 0.08em;
+}
+
+.ratio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.ratio-item {
+  display: grid;
+  grid-template-columns: minmax(90px, auto) 1fr 24px;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.ratio-item__label {
+  font-size: 0.76rem;
+  color: var(--clr-white);
+  letter-spacing: 0.02em;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ratio-item__slider {
+  width: 100%;
+  accent-color: var(--clr-accent);
+}
+
+.ratio-item__value {
+  font-size: 0.8rem;
+  color: var(--clr-accent);
+  text-align: left;
+}
+
 /* Step actions (back / next) */
 .step-actions {
   display: flex;

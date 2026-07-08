@@ -259,17 +259,54 @@
       return parts.length ? parts.join(joiner) : null;
     }
 
+    // STEP1/STEP3では選択候補を組み合わせると「名前(数字)」の形で比率（1〜10）が
+    // テキストに埋め込まれる。ここではその数字を読み取り、百分率に正規化する。
+    const RATIO_SUFFIX = /^(.*?)\((\d{1,2})\)\s*$/;
+
+    function splitPartWithRatio(raw) {
+      const m = raw.match(RATIO_SUFFIX);
+      if (m) return { text: m[1].trim(), ratio: Math.min(10, Math.max(1, Number(m[2]))) };
+      return { text: raw.trim(), ratio: 5 };
+    }
+
+    function computePercentages(weights) {
+      const sum = weights.reduce((a, b) => a + b, 0) || 1;
+      return weights.map((w) => Math.round((w / sum) * 100));
+    }
+
+    // 形状は「クラゲ型(7) × UFO型(3)」のように複数組み合わせた場合、埋め込まれた比率を
+    // 「70% jellyfish-shaped blended with 30% UFO-shaped」のように生成プロンプトへ反映する。
+    // 単体選択のときは比率を付けない。
+    function translateShapeWithRatio(text) {
+      if (!text) return null;
+      const rawParts = text.split(' × ').map((s) => s.trim()).filter(Boolean);
+      if (!rawParts.length) return null;
+      if (rawParts.length === 1) return translatePart(rawParts[0], SHAPE_PROMPT_MAP, SHAPE_KEYS);
+      const parsed = rawParts.map(splitPartWithRatio);
+      const translated = parsed.map((p) => translatePart(p.text, SHAPE_PROMPT_MAP, SHAPE_KEYS));
+      const pct = computePercentages(parsed.map((p) => p.ratio));
+      return translated.map((t, i) => `${pct[i]}% ${t}`).join(' blended with ');
+    }
+
+    // カラーも同様に、2色以上の組み合わせなら埋め込まれた比率を
+    // 「70% レーシングレッド and 30% クリスタルブラック」のような形で反映する。
+    function buildColorClause() {
+      if (!colorLabel) return '';
+      const rawParts = colorLabel.split(' × ').map((s) => s.trim()).filter(Boolean);
+      if (colorHexes.length > 1 && rawParts.length > 1) {
+        const parsed = rawParts.map(splitPartWithRatio);
+        const pct = computePercentages(parsed.map((p) => p.ratio));
+        const blend = parsed.map((p, i) => `${pct[i]}% ${p.text}`).join(' and ');
+        return `, painted in a ${MIX_WORDS[colorMix] || 'mixed color'} blending ${blend}`;
+      }
+      return `, painted in ${splitPartWithRatio(colorLabel).text}`;
+    }
+
     function buildImagePrompt() {
-      const shapePart = translateText(shapeLabel, SHAPE_PROMPT_MAP, SHAPE_KEYS, ' combined with ')
-        || 'a futuristic vehicle';
+      const shapePart = translateShapeWithRatio(shapeLabel) || 'a futuristic vehicle';
       const fuelPart = translateText(fuelLabel, FUEL_PROMPT_MAP, FUEL_KEYS, ' and ');
       const fuelClause = fuelPart ? `, ${fuelPart}` : '';
-      let colorPart = '';
-      if (colorHexes.length > 1) {
-        colorPart = `, painted in a ${MIX_WORDS[colorMix] || 'mixed color'} of ${colorLabel}`;
-      } else if (colorLabel) {
-        colorPart = `, painted in ${colorLabel}`;
-      }
+      const colorPart = buildColorClause();
       const styleClause = translateText(styleLabel, STYLE_PROMPT_MAP, STYLE_KEYS, ', ') || DEFAULT_STYLE_CLAUSE;
       return `${shapePart}, near-future concept design${fuelClause}${colorPart}, ${styleClause}`;
     }
@@ -308,11 +345,13 @@
       try {
         localStorage.removeItem('fcc:selectedShape');
         localStorage.removeItem('fcc:selectedShapeKey');
+        localStorage.removeItem('fcc:selectedShapeRatios');
         localStorage.removeItem('fcc:selectedFuel');
         localStorage.removeItem('fcc:selectedFuelIcon');
         localStorage.removeItem('fcc:selectedColor');
         localStorage.removeItem('fcc:selectedColorHexes');
         localStorage.removeItem('fcc:selectedColorMix');
+        localStorage.removeItem('fcc:selectedColorRatios');
         localStorage.removeItem('fcc:selectedStyle');
       } catch (e) {}
       window.location.href = 'index.html';

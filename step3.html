@@ -54,6 +54,11 @@
           <button type="button" class="suggestion-chip mix-chip" data-mix="stripe">ストライプ</button>
         </div>
       </div>
+
+      <div class="ratio-row" id="ratioRow" hidden>
+        <p class="ratio-row__label">比率（1〜10）</p>
+        <div class="ratio-list" id="ratioList"></div>
+      </div>
     </div>
 
     <div class="step-actions">
@@ -79,6 +84,8 @@
     const shuffleBtn = document.getElementById('shuffleBtn');
     const mixRow = document.getElementById('mixRow');
     const mixOptions = document.getElementById('mixOptions');
+    const ratioRow = document.getElementById('ratioRow');
+    const ratioList = document.getElementById('ratioList');
 
     // よく使う色名（車の塗装名＋一般的な色名）を hex に対応させる。
     // 長い名前ほど優先して部分一致させる（例：「シルバーメタリック」を「シルバー」より先に判定）。
@@ -160,6 +167,7 @@
 
     let chips = [];
     let mixMode = 'marble';
+    let colorRatios = {};
 
     function pickRandomSuggestions(pool, count) {
       const shuffled = [...pool];
@@ -201,7 +209,98 @@
       });
     }
 
-    function applyColors() {
+    function getParts() {
+      return promptInput.value
+        .split(COMBINE_SEPARATOR)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+
+    // 「レーシングレッド(7)」のような表記から、名前部分と比率（末尾の括弧内の数字）を取り出す。
+    const RATIO_SUFFIX = /^(.*?)\((\d{1,2})\)\s*$/;
+
+    function extractBase(part) {
+      const m = part.match(RATIO_SUFFIX);
+      return m ? m[1].trim() : part.trim();
+    }
+
+    function extractRatio(part) {
+      const m = part.match(RATIO_SUFFIX);
+      return m ? Math.min(10, Math.max(1, Number(m[2]))) : null;
+    }
+
+    // 比率を「色名(数字)」の形でテキストに埋め込む。組み合わせが1件だけなら数字は付けない。
+    function buildDisplayText(baseParts) {
+      if (baseParts.length <= 1) return baseParts.join(COMBINE_SEPARATOR);
+      return baseParts.map((p) => `${p}(${colorRatios[p] ?? 5})`).join(COMBINE_SEPARATOR);
+    }
+
+    function saveRatios() {
+      try {
+        localStorage.setItem('fcc:selectedColorRatios', JSON.stringify(colorRatios));
+      } catch (e) {}
+    }
+
+    // 2色以上を組み合わせたときだけ、各色の比率（1〜10）をスライダーで調整できるようにする。
+    function renderRatioRow(baseParts) {
+      ratioRow.hidden = baseParts.length < 2;
+      ratioList.innerHTML = '';
+      if (baseParts.length < 2) return;
+      baseParts.forEach((part) => {
+        const item = document.createElement('div');
+        item.className = 'ratio-item';
+
+        const label = document.createElement('span');
+        label.className = 'ratio-item__label';
+        label.textContent = part;
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '1';
+        slider.max = '10';
+        slider.value = String(colorRatios[part] ?? 5);
+        slider.className = 'ratio-item__slider';
+        slider.setAttribute('aria-label', `${part} の比率`);
+
+        const valueLabel = document.createElement('span');
+        valueLabel.className = 'ratio-item__value';
+        valueLabel.textContent = slider.value;
+
+        // スライダーを動かすたびに、入力欄のテキストにも「色名(数字)」として反映する。
+        slider.addEventListener('input', () => {
+          colorRatios[part] = Number(slider.value);
+          valueLabel.textContent = slider.value;
+          saveRatios();
+          promptInput.value = buildDisplayText(getParts().map(extractBase));
+          syncChipsFromText();
+          applyColorPreviewOnly();
+        });
+
+        item.append(label, slider, valueLabel);
+        ratioList.appendChild(item);
+      });
+    }
+
+    function syncRatios() {
+      const rawParts = getParts();
+      const baseParts = rawParts.map(extractBase);
+      Object.keys(colorRatios).forEach((k) => {
+        if (!baseParts.includes(k)) delete colorRatios[k];
+      });
+      rawParts.forEach((raw, i) => {
+        const base = baseParts[i];
+        const explicit = extractRatio(raw);
+        if (explicit !== null) colorRatios[base] = explicit;
+        else if (!(base in colorRatios)) colorRatios[base] = 5;
+      });
+      renderRatioRow(baseParts);
+      saveRatios();
+    }
+
+    // 比率スライダーのドラッグ中は syncRatios/renderRatioRow を呼び直さない
+    // （スライダーDOMが再生成されドラッグが途切れてしまうため）。プレビューと
+    // 保存だけを行う軽量版。
+    function applyColorPreviewOnly() {
       const value = promptInput.value.trim();
       const colors = getColorsFromText(value);
       mixRow.hidden = colors.length < 2;
@@ -221,6 +320,11 @@
       } catch (e) {}
     }
 
+    function applyColors() {
+      syncRatios();
+      applyColorPreviewOnly();
+    }
+
     promptInput.addEventListener('input', () => {
       updateNextState();
       syncChipsFromText();
@@ -236,17 +340,16 @@
     suggestionList.addEventListener('click', (e) => {
       const chip = e.target.closest('.suggestion-chip');
       if (!chip) return;
-      const parts = promptInput.value
-        .split(COMBINE_SEPARATOR)
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const idx = parts.indexOf(chip.dataset.value);
+      const baseParts = getParts().map(extractBase);
+      const idx = baseParts.indexOf(chip.dataset.value);
       if (idx >= 0) {
-        parts.splice(idx, 1);
+        baseParts.splice(idx, 1);
+        delete colorRatios[chip.dataset.value];
       } else {
-        parts.push(chip.dataset.value);
+        baseParts.push(chip.dataset.value);
+        if (!(chip.dataset.value in colorRatios)) colorRatios[chip.dataset.value] = 5;
       }
-      promptInput.value = parts.join(COMBINE_SEPARATOR);
+      promptInput.value = buildDisplayText(baseParts);
       promptInput.dispatchEvent(new Event('input'));
       promptInput.focus();
     });
@@ -265,6 +368,8 @@
     try {
       const saved = localStorage.getItem('fcc:selectedColor');
       const savedMix = localStorage.getItem('fcc:selectedColorMix');
+      const savedRatios = JSON.parse(localStorage.getItem('fcc:selectedColorRatios') || '{}');
+      colorRatios = savedRatios || {};
       if (savedMix) mixMode = savedMix;
       if (saved) {
         promptInput.value = saved;
