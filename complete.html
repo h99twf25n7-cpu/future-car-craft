@@ -196,13 +196,13 @@
       return parts.length ? parts.join(joiner) : null;
     }
 
-    // STEP1/STEP3では選択候補を組み合わせると「名前(数字)」の形で比率（1〜10）が
+    // STEP1/STEP3では選択候補を組み合わせると「名前(数字)」の形で比率（0〜10）が
     // テキストに埋め込まれる。ここではその数字を読み取り、百分率に正規化する。
     const RATIO_SUFFIX = /^(.*?)\((\d{1,2})\)\s*$/;
 
     function splitPartWithRatio(raw) {
       const m = raw.match(RATIO_SUFFIX);
-      if (m) return { text: m[1].trim(), ratio: Math.min(10, Math.max(1, Number(m[2]))) };
+      if (m) return { text: m[1].trim(), ratio: Math.min(10, Math.max(0, Number(m[2]))) };
       return { text: raw.trim(), ratio: 5 };
     }
 
@@ -211,29 +211,39 @@
       return weights.map((w) => Math.round((w / sum) * 100));
     }
 
+    // 比率が0の要素は「混ぜない」ことを意味するので、生成プロンプトから完全に除外する。
+    // 全てが0の場合（あり得ないはずだが念のため）は除外前の一覧にフォールバックする。
+    function dropZeroRatio(parsed) {
+      const active = parsed.filter((p) => p.ratio > 0);
+      return active.length ? active : parsed;
+    }
+
     // 形状は「クラゲ型(7) × SUV(3)」のように複数組み合わせた場合、埋め込まれた比率を
     // 「70% jellyfish-shaped blended with 30% SUV」のように生成プロンプトへ反映する。
-    // 単体選択のときは比率を付けない。
+    // 比率0の要素は混ぜず、単体選択のときは比率を付けない。
     function translateShapeWithRatio(text) {
       if (!text) return null;
       const rawParts = text.split(' × ').map((s) => s.trim()).filter(Boolean);
       if (!rawParts.length) return null;
       if (rawParts.length === 1) return translatePart(rawParts[0], SHAPE_PROMPT_MAP, SHAPE_KEYS);
-      const parsed = rawParts.map(splitPartWithRatio);
-      const translated = parsed.map((p) => translatePart(p.text, SHAPE_PROMPT_MAP, SHAPE_KEYS));
-      const pct = computePercentages(parsed.map((p) => p.ratio));
+      const active = dropZeroRatio(rawParts.map(splitPartWithRatio));
+      if (active.length === 1) return translatePart(active[0].text, SHAPE_PROMPT_MAP, SHAPE_KEYS);
+      const translated = active.map((p) => translatePart(p.text, SHAPE_PROMPT_MAP, SHAPE_KEYS));
+      const pct = computePercentages(active.map((p) => p.ratio));
       return translated.map((t, i) => `${pct[i]}% ${t}`).join(' blended with ');
     }
 
     // カラーも同様に、2色以上の組み合わせなら埋め込まれた比率を
     // 「70% レーシングレッド and 30% クリスタルブラック」のような形で反映する。
+    // 比率0の色は混ぜない。
     function buildColorClause() {
       if (!colorLabel) return '';
       const rawParts = colorLabel.split(' × ').map((s) => s.trim()).filter(Boolean);
       if (colorHexes.length > 1 && rawParts.length > 1) {
-        const parsed = rawParts.map(splitPartWithRatio);
-        const pct = computePercentages(parsed.map((p) => p.ratio));
-        const blend = parsed.map((p, i) => `${pct[i]}% ${p.text}`).join(' and ');
+        const active = dropZeroRatio(rawParts.map(splitPartWithRatio));
+        if (active.length === 1) return `, painted in ${active[0].text}`;
+        const pct = computePercentages(active.map((p) => p.ratio));
+        const blend = active.map((p, i) => `${pct[i]}% ${p.text}`).join(' and ');
         return `, painted in a ${MIX_WORDS[colorMix] || 'mixed color'} blending ${blend}`;
       }
       return `, painted in ${splitPartWithRatio(colorLabel).text}`;

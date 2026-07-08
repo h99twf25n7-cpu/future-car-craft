@@ -42,7 +42,7 @@
       </button>
 
       <div class="ratio-row" id="ratioRow" hidden>
-        <p class="ratio-row__label">比率（1〜10）</p>
+        <p class="ratio-row__label">比率（0〜10、0で完全に除外）</p>
         <div class="ratio-list" id="ratioList"></div>
       </div>
     </div>
@@ -153,7 +153,7 @@
 
     function extractRatio(part) {
       const m = part.match(RATIO_SUFFIX);
-      return m ? Math.min(10, Math.max(1, Number(m[2]))) : null;
+      return m ? Math.min(10, Math.max(0, Number(m[2]))) : null;
     }
 
     // 比率を「名前(数字)」の形でテキストに埋め込む。組み合わせが1件だけなら数字は付けない。
@@ -168,7 +168,7 @@
       } catch (e) {}
     }
 
-    // 2つ以上の形状を組み合わせたときだけ、各要素の比率（1〜10）を
+    // 2つ以上の形状を組み合わせたときだけ、各要素の比率（0〜10、0で完全に除外）を
     // スライダーで調整できるようにする。
     function renderRatioRow(baseParts) {
       ratioRow.hidden = baseParts.length < 2;
@@ -184,7 +184,7 @@
 
         const slider = document.createElement('input');
         slider.type = 'range';
-        slider.min = '1';
+        slider.min = '0';
         slider.max = '10';
         slider.value = String(shapeRatios[part] ?? 5);
         slider.className = 'ratio-item__slider';
