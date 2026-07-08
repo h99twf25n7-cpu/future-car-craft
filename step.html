@@ -284,7 +284,17 @@
     nextBtn.addEventListener('click', () => {
       const value = promptInput.value.trim();
       if (!value) return;
-      window.location.href = 'step2.html';
+      // 現在は形状のみで画像生成できるよう、燃料・カラー・スタイルのステップを一旦スキップする。
+      try {
+        localStorage.removeItem('fcc:selectedFuel');
+        localStorage.removeItem('fcc:selectedFuelIcon');
+        localStorage.removeItem('fcc:selectedColor');
+        localStorage.removeItem('fcc:selectedColorHexes');
+        localStorage.removeItem('fcc:selectedColorMix');
+        localStorage.removeItem('fcc:selectedColorRatios');
+        localStorage.removeItem('fcc:selectedStyle');
+      } catch (e) {}
+      window.location.href = 'complete.html';
     });
   </script>
 
