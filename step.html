@@ -72,11 +72,11 @@
     function guessShapeKey(text) {
       const t = text.toLowerCase();
       const rules = [
-        { key: 'suv', words: ['suv', 'クロスオーバー', 'オフロード', '4wd', 'awd', 'ロボット', 'robot'] },
-        { key: 'sports', words: ['スポーツ', 'sports', 'スーパーカー', 'super', 'レーシング', 'racing', 'ufo', '宇宙船', '流れ星', '昆虫'] },
-        { key: 'minivan', words: ['ミニバン', 'minivan', 'van', 'ワゴン', 'ファミリー', '雲', 'クラゲ'] },
-        { key: 'truck', words: ['トラック', 'truck', 'ピックアップ', 'pickup', '恐竜', '隕石'] },
-        { key: 'coupe', words: ['クーペ', 'coupe', '貝殻'] },
+        { key: 'suv', words: ['suv', 'クロスオーバー', 'オフロード', '4wd', 'awd'] },
+        { key: 'sports', words: ['スポーツ', 'sports', 'スーパーカー', 'super', 'レーシング', 'racing'] },
+        { key: 'minivan', words: ['ミニバン', 'minivan', 'van', 'ワゴン', 'ファミリー', 'クラゲ'] },
+        { key: 'truck', words: ['トラック', 'truck', 'ピックアップ', 'pickup'] },
+        { key: 'coupe', words: ['クーペ', 'coupe'] },
       ];
       for (const rule of rules) {
         if (rule.words.some((w) => t.includes(w))) return rule.key;
@@ -88,9 +88,7 @@
     // ここからランダムに一部を候補として表示し、入れ替えできるようにする。
     const SUGGESTION_POOL = [
       'セダン', 'SUV', 'スポーツカー', 'ミニバン', 'ピックアップトラック', 'クーペ',
-      'ステーションワゴン', 'オープンカー',
-      'UFO型', '恐竜型', 'ロボット型', '宇宙船型', 'カプセル型',
-      '昆虫型', '貝殻型', '雲型', '流れ星型', 'クラゲ型', '隕石型',
+      'ステーションワゴン', 'オープンカー', 'クラゲ型',
     ];
     const SUGGESTION_COUNT = 6;
     const COMBINE_SEPARATOR = ' × ';

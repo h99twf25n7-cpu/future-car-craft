@@ -118,28 +118,8 @@
       'クーペ': 'a futuristic coupe car',
       'セダン': 'a futuristic sedan car',
       'SUV': 'a futuristic SUV',
-      'UFO型': 'a flying-saucer-shaped hovering vehicle (UFO design)',
-      'UFO': 'a flying-saucer-shaped hovering vehicle (UFO design)',
-      '恐竜型': 'a dinosaur-shaped vehicle with organic scaly bodywork',
-      '恐竜': 'a dinosaur-shaped vehicle with organic scaly bodywork',
-      'ロボット型': 'a robot-shaped transforming vehicle',
-      'ロボット': 'a robot-shaped transforming vehicle',
-      '宇宙船型': 'a spaceship-shaped vehicle',
-      '宇宙船': 'a spaceship-shaped vehicle',
-      'カプセル型': 'a capsule-shaped pod vehicle',
-      'カプセル': 'a capsule-shaped pod vehicle',
-      '昆虫型': 'an insect-shaped vehicle with a segmented exoskeleton body',
-      '昆虫': 'an insect-shaped vehicle with a segmented exoskeleton body',
-      '貝殻型': 'a seashell-shaped vehicle with a spiral curved shell body',
-      '貝殻': 'a seashell-shaped vehicle with a spiral curved shell body',
-      '雲型': 'a cloud-shaped vehicle with a soft rounded fluffy body',
-      '雲': 'a cloud-shaped vehicle with a soft rounded fluffy body',
-      '流れ星型': 'a shooting-star-shaped streamlined vehicle with a glowing trail',
-      '流れ星': 'a shooting-star-shaped streamlined vehicle with a glowing trail',
       'クラゲ型': 'a jellyfish-shaped vehicle with a translucent dome and flowing tentacle-like fins',
       'クラゲ': 'a jellyfish-shaped vehicle with a translucent dome and flowing tentacle-like fins',
-      '隕石型': 'a meteorite-shaped rugged rocky vehicle',
-      '隕石': 'a meteorite-shaped rugged rocky vehicle',
     };
     const SHAPE_KEYS = Object.keys(SHAPE_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
@@ -231,8 +211,8 @@
       return weights.map((w) => Math.round((w / sum) * 100));
     }
 
-    // 形状は「クラゲ型(7) × UFO型(3)」のように複数組み合わせた場合、埋め込まれた比率を
-    // 「70% jellyfish-shaped blended with 30% UFO-shaped」のように生成プロンプトへ反映する。
+    // 形状は「クラゲ型(7) × SUV(3)」のように複数組み合わせた場合、埋め込まれた比率を
+    // 「70% jellyfish-shaped blended with 30% SUV」のように生成プロンプトへ反映する。
     // 単体選択のときは比率を付けない。
     function translateShapeWithRatio(text) {
       if (!text) return null;
