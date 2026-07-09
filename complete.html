@@ -111,7 +111,11 @@
     // 一切持たない。ここに追記する定義は自分で一つずつ決めていく
     // （例："SUV": "a futuristic SUV, ..." のように追加する）。
     // 未定義の語は translatePart によりそのまま（日本語のまま）プロンプトに渡される。
-    const SHAPE_PROMPT_MAP = {};
+    // 実在の車種名は使わず、規格・形状の物理的特徴だけを記述する
+    // （特定車種の意匠をそのまま模倣させず、"軽自動車らしさ"を出すため）。
+    const SHAPE_PROMPT_MAP = {
+      '軽自動車': 'Compact Japanese kei car, tall narrow box-shaped body, very short front/rear overhangs, wheels at the four corners, small wheels, short hood, upright A-pillars, large glass area, sliding door, yellow Japanese kei-car license plate, front three-quarter view, photorealistic, daylight',
+    };
     const SHAPE_KEYS = Object.keys(SHAPE_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
     const FUEL_PROMPT_MAP = {};
