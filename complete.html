@@ -107,73 +107,18 @@
     // Pollinations の画像生成エンドポイントは GET リクエストの URL に
     // プロンプトを埋め込むだけで画像を直接返すため、サーバー側の処理なしで
     // <img> の src に組み込める。
-    // 画像生成モデルは日本語の形状名をそのまま渡してもほぼ理解できないため、
-    // 候補チップの語だけでも英語の説明句に変換してから渡す（未知の語はそのまま通す）。
-    const SHAPE_PROMPT_MAP = {
-      'ステーションワゴン': 'a futuristic station wagon, elongated roofline extending to a stretched cargo area, like a Subaru Outback or Volvo V60',
-      'ピックアップトラック': 'a futuristic pickup truck, rugged body with an open cargo bed and a prominent front grille, like a Ford F-150 or Toyota Hilux',
-      'スポーツカー': 'a futuristic sports car, low-slung wide stance with aggressive aerodynamic curves and a two-door body, like a Porsche 911 or Chevrolet Corvette',
-      'オープンカー': 'a futuristic convertible car, low sporty body with a retractable soft top, like a Mazda MX-5 or BMW Z4',
-      'ミニバン': 'a futuristic minivan, tall boxy cabin with sliding doors and a spacious family-oriented body, like a Toyota Alphard or Honda Odyssey',
-      'ピックアップ': 'a futuristic pickup truck, rugged body with an open cargo bed and a prominent front grille, like a Ford F-150 or Toyota Hilux',
-      'クーペ': 'a futuristic coupe car, two-door body with a sleek sloping roofline, like a BMW 4 Series Coupe or Mercedes-Benz C-Class Coupe',
-      'セダン': 'a futuristic sedan car, sleek three-box body with a distinct trunk and low profile, like a Toyota Camry or Honda Accord',
-      'SUV': 'a futuristic SUV, tall ride height, boxy rugged body with roof rails, like a Toyota RAV4 or Land Rover Defender',
-      '軽自動車': 'a futuristic Japanese kei car (kei-jidousha) microcar, ultra-compact boxy body under 3.4m long and 1.48m wide, tall roof maximizing interior cabin space relative to its tiny footprint, short front and rear overhangs, narrow track width, like a Honda N-BOX or Daihatsu Tanto',
-    };
+    // 完全リセット状態：あらかじめ用意した英語の説明句・固定スタイル文言は
+    // 一切持たない。ここに追記する定義は自分で一つずつ決めていく
+    // （例："SUV": "a futuristic SUV, ..." のように追加する）。
+    // 未定義の語は translatePart によりそのまま（日本語のまま）プロンプトに渡される。
+    const SHAPE_PROMPT_MAP = {};
     const SHAPE_KEYS = Object.keys(SHAPE_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
-    const FUEL_PROMPT_MAP = {
-      'ガソリン': 'gasoline-powered',
-      'ディーゼル': 'diesel-powered',
-      'プラグインハイブリッド': 'plug-in hybrid powered',
-      'ハイブリッド': 'hybrid powered',
-      '水素': 'hydrogen fuel cell powered',
-      'EV': 'electric powered',
-      '電気': 'electric powered',
-      '空気': 'powered by compressed air',
-      '太陽光': 'solar powered',
-      '風力': 'wind powered',
-    };
+    const FUEL_PROMPT_MAP = {};
     const FUEL_KEYS = Object.keys(FUEL_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
-    const MIX_WORDS = {
-      marble: 'marble swirl pattern',
-      gradient: 'smooth gradient blend',
-      twotone: 'two-tone split paint',
-      stripe: 'racing stripe pattern',
-    };
-
-    // 画風の指定は「油絵」なのに末尾が「professional photography」のままだと
-    // 矛盾してしまうため、スタイルが選ばれたときは既定の写真調の締めを丸ごと
-    // 置き換える。
-    const STYLE_PROMPT_MAP = {
-      '写真（フォトリアル）': 'photorealistic photograph, studio lighting, highly detailed, cinematic',
-      'フォトリアル': 'photorealistic photograph, studio lighting, highly detailed, cinematic',
-      '写真': 'photorealistic photograph, studio lighting, highly detailed, cinematic',
-      '油絵': 'oil painting style, visible brush strokes, rich textured canvas',
-      '水彩画': 'watercolor painting style, soft flowing pigments, paper texture',
-      '水彩': 'watercolor painting style, soft flowing pigments, paper texture',
-      '鉛筆画（スケッチ）': 'pencil sketch style, hand-drawn graphite shading, sketchbook paper',
-      '鉛筆画': 'pencil sketch style, hand-drawn graphite shading, sketchbook paper',
-      '鉛筆': 'pencil sketch style, hand-drawn graphite shading, sketchbook paper',
-      'スケッチ': 'rough sketch style, hand-drawn pencil lines',
-      'アニメ風': 'anime style illustration, cel-shaded, vibrant colors',
-      'アニメ': 'anime style illustration, cel-shaded, vibrant colors',
-      '3Dレンダー': '3D render, octane render, studio lighting, highly detailed',
-      'ピクセルアート': 'pixel art style, retro 8-bit video game aesthetic',
-      'サイバーパンク風': 'cyberpunk neon style, glowing neon lights, futuristic city backdrop',
-      'サイバーパンク': 'cyberpunk neon style, glowing neon lights, futuristic city backdrop',
-      'ネオン': 'neon glow style, vibrant neon lighting, dark background',
-      'ミニマル': 'minimalist design, flat colors, clean simple background',
-      'ステンドグラス': 'stained glass art style, colorful glass panel textures',
-      'ブループリント図面風': 'technical blueprint schematic style, line drawing on blueprint paper',
-      'ブループリント': 'technical blueprint schematic style, line drawing on blueprint paper',
-      'クレイアート': 'claymation style, stop-motion clay model texture',
-      'コンセプトアート': 'digital concept art, matte painting style, highly detailed',
-    };
+    const STYLE_PROMPT_MAP = {};
     const STYLE_KEYS = Object.keys(STYLE_PROMPT_MAP).sort((a, b) => b.length - a.length);
-    const DEFAULT_STYLE_CLAUSE = 'studio lighting, professional concept vehicle photography, highly detailed, cinematic';
 
     function translatePart(word, map, keys) {
       const trimmed = word.trim();
@@ -231,27 +176,31 @@
 
     // カラーも同様に、2色以上の組み合わせなら埋め込まれた比率を
     // 「70% レーシングレッド and 30% クリスタルブラック」のような形で反映する。
-    // 比率0の色は混ぜない。
+    // 比率0の色は混ぜない。混ぜ方（marble/gradient/twotone/stripe）は説明句に
+    // 変換せず、選択されたキーをそのまま使う。
     function buildColorClause() {
       if (!colorLabel) return '';
       const rawParts = colorLabel.split(' × ').map((s) => s.trim()).filter(Boolean);
       if (colorHexes.length > 1 && rawParts.length > 1) {
         const active = dropZeroRatio(rawParts.map(splitPartWithRatio));
-        if (active.length === 1) return `, painted in ${active[0].text}`;
+        if (active.length === 1) return `painted in ${active[0].text}`;
         const pct = computePercentages(active.map((p) => p.ratio));
         const blend = active.map((p, i) => `${pct[i]}% ${p.text}`).join(' and ');
-        return `, painted in a ${MIX_WORDS[colorMix] || 'mixed color'} blending ${blend}`;
+        return `painted in a ${colorMix} blend of ${blend}`;
       }
-      return `, painted in ${splitPartWithRatio(colorLabel).text}`;
+      return `painted in ${splitPartWithRatio(colorLabel).text}`;
     }
 
+    // 完全リセット状態：固定のスタイル文言（"near-future concept design" 等）は
+    // 一切付け加えず、選択された内容だけをそのままつなげてプロンプトにする。
     function buildImagePrompt() {
-      const shapePart = translateShapeWithRatio(shapeLabel) || 'a futuristic vehicle';
-      const fuelPart = translateText(fuelLabel, FUEL_PROMPT_MAP, FUEL_KEYS, ' and ');
-      const fuelClause = fuelPart ? `, ${fuelPart}` : '';
-      const colorPart = buildColorClause();
-      const styleClause = translateText(styleLabel, STYLE_PROMPT_MAP, STYLE_KEYS, ', ') || DEFAULT_STYLE_CLAUSE;
-      return `${shapePart}, near-future concept design${fuelClause}${colorPart}, ${styleClause}`;
+      const parts = [
+        translateShapeWithRatio(shapeLabel),
+        translateText(fuelLabel, FUEL_PROMPT_MAP, FUEL_KEYS, ' and '),
+        buildColorClause(),
+        translateText(styleLabel, STYLE_PROMPT_MAP, STYLE_KEYS, ', '),
+      ].filter(Boolean);
+      return parts.join(', ') || 'a vehicle';
     }
 
     function buildImageUrl(prompt) {
