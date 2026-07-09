@@ -520,34 +520,6 @@ html, body {
   box-shadow: 0 0 18px rgba(0, 212, 255, 0.35);
 }
 
-.suggestion-shuffle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.4rem;
-  padding: 0.4rem 0.9rem;
-  border: none;
-  background: transparent;
-  color: var(--clr-dim);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: color 0.25s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.suggestion-shuffle__icon {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-}
-
-.suggestion-shuffle:hover,
-.suggestion-shuffle:focus-visible {
-  color: var(--clr-accent);
-  outline: none;
-}
-
 /* Multi-color mix style picker (marble / gradient / two-tone / stripe) */
 .mix-row {
   display: flex;

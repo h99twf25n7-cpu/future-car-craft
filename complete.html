@@ -61,6 +61,7 @@
 
   <script>
     const SHAPE_ICONS = {
+      kei:     '🚗',
       sedan:   '🚗',
       suv:     '🚙',
       sports:  '🏎️',
@@ -109,17 +110,16 @@
     // 画像生成モデルは日本語の形状名をそのまま渡してもほぼ理解できないため、
     // 候補チップの語だけでも英語の説明句に変換してから渡す（未知の語はそのまま通す）。
     const SHAPE_PROMPT_MAP = {
-      'ステーションワゴン': 'a futuristic station wagon',
-      'ピックアップトラック': 'a futuristic pickup truck',
-      'スポーツカー': 'a futuristic sports car',
-      'オープンカー': 'a futuristic convertible car',
-      'ミニバン': 'a futuristic minivan',
-      'ピックアップ': 'a futuristic pickup truck',
-      'クーペ': 'a futuristic coupe car',
-      'セダン': 'a futuristic sedan car',
-      'SUV': 'a futuristic SUV',
-      'クラゲ型': 'a jellyfish-shaped vehicle with a translucent dome and flowing tentacle-like fins',
-      'クラゲ': 'a jellyfish-shaped vehicle with a translucent dome and flowing tentacle-like fins',
+      'ステーションワゴン': 'a futuristic station wagon, elongated roofline extending to a stretched cargo area, like a Subaru Outback or Volvo V60',
+      'ピックアップトラック': 'a futuristic pickup truck, rugged body with an open cargo bed and a prominent front grille, like a Ford F-150 or Toyota Hilux',
+      'スポーツカー': 'a futuristic sports car, low-slung wide stance with aggressive aerodynamic curves and a two-door body, like a Porsche 911 or Chevrolet Corvette',
+      'オープンカー': 'a futuristic convertible car, low sporty body with a retractable soft top, like a Mazda MX-5 or BMW Z4',
+      'ミニバン': 'a futuristic minivan, tall boxy cabin with sliding doors and a spacious family-oriented body, like a Toyota Alphard or Honda Odyssey',
+      'ピックアップ': 'a futuristic pickup truck, rugged body with an open cargo bed and a prominent front grille, like a Ford F-150 or Toyota Hilux',
+      'クーペ': 'a futuristic coupe car, two-door body with a sleek sloping roofline, like a BMW 4 Series Coupe or Mercedes-Benz C-Class Coupe',
+      'セダン': 'a futuristic sedan car, sleek three-box body with a distinct trunk and low profile, like a Toyota Camry or Honda Accord',
+      'SUV': 'a futuristic SUV, tall ride height, boxy rugged body with roof rails, like a Toyota RAV4 or Land Rover Defender',
+      '軽自動車': 'a futuristic Japanese kei car (kei-jidousha) microcar, ultra-compact boxy body under 3.4m long and 1.48m wide, tall roof maximizing interior cabin space relative to its tiny footprint, short front and rear overhangs, narrow track width, like a Honda N-BOX or Daihatsu Tanto',
     };
     const SHAPE_KEYS = Object.keys(SHAPE_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
@@ -131,13 +131,9 @@
       '水素': 'hydrogen fuel cell powered',
       'EV': 'electric powered',
       '電気': 'electric powered',
-      'チョコレート': 'whimsically powered by chocolate',
-      '炭酸': 'whimsically powered by soda fizz',
       '空気': 'powered by compressed air',
-      'コーヒー': 'whimsically powered by coffee',
       '太陽光': 'solar powered',
       '風力': 'wind powered',
-      'ドーナツ': 'whimsically powered by donuts',
     };
     const FUEL_KEYS = Object.keys(FUEL_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
@@ -218,8 +214,8 @@
       return active.length ? active : parsed;
     }
 
-    // 形状は「クラゲ型(7) × SUV(3)」のように複数組み合わせた場合、埋め込まれた比率を
-    // 「70% jellyfish-shaped blended with 30% SUV」のように生成プロンプトへ反映する。
+    // 形状は「SUV(7) × セダン(3)」のように複数組み合わせた場合、埋め込まれた比率を
+    // 「70% SUV blended with 30% sedan」のように生成プロンプトへ反映する。
     // 比率0の要素は混ぜず、単体選択のときは比率を付けない。
     function translateShapeWithRatio(text) {
       if (!text) return null;

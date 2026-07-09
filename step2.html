@@ -25,21 +25,13 @@
         type="text"
         id="fuelPrompt"
         class="prompt-input"
-        placeholder="例：ハイブリッド、EV、チョコレート発電..."
+        placeholder="例：ハイブリッド、EV、水素..."
         maxlength="80"
         autocomplete="off"
         aria-label="燃料タイプ"
       />
       <p class="prompt-hint">思い描いているパワーユニットを言葉で説明してください（候補は組み合わせて選べます）</p>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
-      <button type="button" class="suggestion-shuffle" id="shuffleBtn">
-        <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-        </svg>
-        <span>候補を入れ替える</span>
-      </button>
     </div>
 
     <div class="step-actions">
@@ -62,7 +54,6 @@
     const nextBtn = document.getElementById('nextBtn');
 
     // complete画面のサマリー表示用アイコンを、自由入力のキーワードから推定する。
-    // ユーモア系の燃料もそれらしいアイコンへ寄せ、該当が無ければ汎用アイコンにする。
     function guessFuelIcon(text) {
       const t = text.toLowerCase();
       const rules = [
@@ -72,13 +63,8 @@
         { icon: '🔌', words: ['プラグイン', 'phev'] },
         { icon: '⚡', words: ['ev', '電気', 'electric'] },
         { icon: '💧', words: ['水素', 'hydrogen', 'fcv'] },
-        { icon: '🍫', words: ['チョコレート', 'chocolate'] },
-        { icon: '🥤', words: ['炭酸', 'soda', 'コーラ', 'cola'] },
-        { icon: '💨', words: ['空気', 'air'] },
-        { icon: '☕', words: ['コーヒー', 'coffee'] },
         { icon: '☀️', words: ['太陽', 'solar'] },
         { icon: '🌪️', words: ['風', 'wind'] },
-        { icon: '🍩', words: ['ドーナツ', 'donut', 'doughnut'] },
       ];
       for (const rule of rules) {
         if (rule.words.some((w) => t.includes(w))) return rule.icon;
@@ -86,59 +72,44 @@
       return '⚡';
     }
 
-    // 現実的な燃料タイプ＋近未来らしいユーモア枠を混ぜたプール。
-    // ここからランダムに一部を候補として表示し、入れ替えできるようにする。
+    // 実在する燃料タイプのみのプール。全件を常に一覧表示する。
     const SUGGESTION_POOL = [
       'ガソリン', 'ディーゼル', 'ハイブリッド', 'プラグインハイブリッド', 'EV（電気）', '水素（FCV）',
-      'チョコレート', '炭酸', '空気', 'コーヒー', '太陽光', '風力', 'ドーナツ',
+      '太陽光', '風力',
     ];
-    const SUGGESTION_COUNT = 6;
     const COMBINE_SEPARATOR = ' × ';
 
     const suggestionList = document.getElementById('suggestionList');
-    const shuffleBtn = document.getElementById('shuffleBtn');
-    let chips = [];
 
-    function pickRandomSuggestions(pool, count) {
-      const shuffled = [...pool];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled.slice(0, count);
+    function createChip(label, isSelected) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = isSelected ? 'suggestion-chip is-active' : 'suggestion-chip';
+      chip.dataset.value = label;
+      chip.textContent = label;
+      return chip;
     }
 
+    // 候補は入れ替えず、プール全件を常に表示する。選択中のものは is-active で示す。
     function renderSuggestions() {
+      const selectedValue = promptInput.value
+        .split(COMBINE_SEPARATOR)
+        .map((s) => s.trim())
+        .filter(Boolean);
       suggestionList.innerHTML = '';
-      pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT).forEach((label) => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'suggestion-chip';
-        chip.dataset.value = label;
-        chip.textContent = label;
-        suggestionList.appendChild(chip);
+      SUGGESTION_POOL.forEach((label) => {
+        suggestionList.appendChild(createChip(label, selectedValue.includes(label)));
       });
-      chips = Array.from(suggestionList.querySelectorAll('.suggestion-chip'));
-      syncChipsFromText();
     }
 
     function updateNextState() {
       nextBtn.disabled = promptInput.value.trim().length === 0;
     }
 
-    // 入力中のテキストに候補の文言が含まれていれば、その候補チップを
-    // 選択中として見た目に反映する（掛け合わせ状態を視覚化する）。
-    function syncChipsFromText() {
-      const value = promptInput.value;
-      chips.forEach((chip) => {
-        chip.classList.toggle('is-active', value.includes(chip.dataset.value));
-      });
-    }
-
     promptInput.addEventListener('input', () => {
       const value = promptInput.value.trim();
       updateNextState();
-      syncChipsFromText();
+      renderSuggestions();
       try {
         localStorage.setItem('fcc:selectedFuel', value);
         localStorage.setItem('fcc:selectedFuelIcon', guessFuelIcon(value));
@@ -151,7 +122,7 @@
       }
     });
 
-    // チップは入れ替え機能で作り直されるため、コンテナへのイベント委譲で処理する。
+    // チップはコンテナへのイベント委譲で処理する。
     suggestionList.addEventListener('click', (e) => {
       const chip = e.target.closest('.suggestion-chip');
       if (!chip) return;
@@ -170,18 +141,15 @@
       promptInput.focus();
     });
 
-    shuffleBtn.addEventListener('click', () => renderSuggestions());
-
-    renderSuggestions();
-
     try {
       const saved = localStorage.getItem('fcc:selectedFuel');
       if (saved) {
         promptInput.value = saved;
         updateNextState();
-        syncChipsFromText();
       }
     } catch (e) {}
+
+    renderSuggestions();
 
     nextBtn.addEventListener('click', () => {
       const value = promptInput.value.trim();

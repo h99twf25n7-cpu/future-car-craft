@@ -25,21 +25,13 @@
         type="text"
         id="shapePrompt"
         class="prompt-input"
-        placeholder="例：流線型のスポーツカー、力強いSUV、荷物が積めるピックアップ..."
+        placeholder="例：丸みのある軽自動車、背の高い軽自動車..."
         maxlength="80"
         autocomplete="off"
         aria-label="車両の形状"
       />
       <p class="prompt-hint">思い描いているボディタイプを言葉で説明してください（候補は組み合わせて選べます）</p>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
-      <button type="button" class="suggestion-shuffle" id="shuffleBtn">
-        <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-        </svg>
-        <span>候補を入れ替える</span>
-      </button>
 
       <div class="ratio-row" id="ratioRow" hidden>
         <p class="ratio-row__label">比率（0〜10、0で完全に除外）</p>
@@ -68,13 +60,13 @@
 
     // 3D preview には既定のプリセット形状しか無いため、自由入力からキーワードで
     // 最も近いプリセットを推定してフォールバックとして保存する。
-    // ユーモア系の候補も、見た目の近いプリセットへざっくり寄せている。
     function guessShapeKey(text) {
       const t = text.toLowerCase();
       const rules = [
+        { key: 'kei', words: ['軽自動車', '軽自', 'kei car', 'kei'] },
         { key: 'suv', words: ['suv', 'クロスオーバー', 'オフロード', '4wd', 'awd'] },
         { key: 'sports', words: ['スポーツ', 'sports', 'スーパーカー', 'super', 'レーシング', 'racing'] },
-        { key: 'minivan', words: ['ミニバン', 'minivan', 'van', 'ワゴン', 'ファミリー', 'クラゲ'] },
+        { key: 'minivan', words: ['ミニバン', 'minivan', 'van', 'ワゴン', 'ファミリー'] },
         { key: 'truck', words: ['トラック', 'truck', 'ピックアップ', 'pickup'] },
         { key: 'coupe', words: ['クーペ', 'coupe'] },
       ];
@@ -84,56 +76,37 @@
       return 'sedan';
     }
 
-    // 現実的なボディタイプ＋近未来らしいユーモア枠を混ぜたプール。
-    // ここからランダムに一部を候補として表示し、入れ替えできるようにする。
+    // テスト段階として、まずは軽自動車のみを選択肢に残す。
     const SUGGESTION_POOL = [
-      'セダン', 'SUV', 'スポーツカー', 'ミニバン', 'ピックアップトラック', 'クーペ',
-      'ステーションワゴン', 'オープンカー', 'クラゲ型',
+      '軽自動車',
     ];
-    const SUGGESTION_COUNT = 6;
     const COMBINE_SEPARATOR = ' × ';
 
     const suggestionList = document.getElementById('suggestionList');
-    const shuffleBtn = document.getElementById('shuffleBtn');
     const ratioRow = document.getElementById('ratioRow');
     const ratioList = document.getElementById('ratioList');
-    let chips = [];
     let shapeRatios = {};
 
-    function pickRandomSuggestions(pool, count) {
-      const shuffled = [...pool];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled.slice(0, count);
+    function createChip(label, isSelected) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = isSelected ? 'suggestion-chip is-active' : 'suggestion-chip';
+      chip.dataset.value = label;
+      chip.textContent = label;
+      return chip;
     }
 
+    // 候補は入れ替えず、プール全件を常に表示する。選択中のものは is-active で示す。
     function renderSuggestions() {
+      const selectedBase = getParts().map(extractBase);
       suggestionList.innerHTML = '';
-      pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT).forEach((label) => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'suggestion-chip';
-        chip.dataset.value = label;
-        chip.textContent = label;
-        suggestionList.appendChild(chip);
+      SUGGESTION_POOL.forEach((label) => {
+        suggestionList.appendChild(createChip(label, selectedBase.includes(label)));
       });
-      chips = Array.from(suggestionList.querySelectorAll('.suggestion-chip'));
-      syncChipsFromText();
     }
 
     function updateNextState() {
       nextBtn.disabled = promptInput.value.trim().length === 0;
-    }
-
-    // 入力中のテキストに候補の文言が含まれていれば、その候補チップを
-    // 選択中として見た目に反映する（掛け合わせ状態を視覚化する）。
-    function syncChipsFromText() {
-      const value = promptInput.value;
-      chips.forEach((chip) => {
-        chip.classList.toggle('is-active', value.includes(chip.dataset.value));
-      });
     }
 
     function getParts() {
@@ -143,7 +116,7 @@
         .filter(Boolean);
     }
 
-    // 「クラゲ型(7)」のような表記から、名前部分と比率（末尾の括弧内の数字）を取り出す。
+    // 「SUV(7)」のような表記から、名前部分と比率（末尾の括弧内の数字）を取り出す。
     const RATIO_SUFFIX = /^(.*?)\((\d{1,2})\)\s*$/;
 
     function extractBase(part) {
@@ -200,7 +173,6 @@
           valueLabel.textContent = slider.value;
           saveRatios();
           promptInput.value = buildDisplayText(getParts().map(extractBase));
-          syncChipsFromText();
           try {
             localStorage.setItem('fcc:selectedShape', promptInput.value.trim());
             localStorage.setItem('fcc:selectedShapeKey', guessShapeKey(promptInput.value));
@@ -231,7 +203,7 @@
     promptInput.addEventListener('input', () => {
       const value = promptInput.value.trim();
       updateNextState();
-      syncChipsFromText();
+      renderSuggestions();
       syncRatios();
       try {
         localStorage.setItem('fcc:selectedShape', value);
@@ -245,7 +217,7 @@
       }
     });
 
-    // チップは入れ替え機能で作り直されるため、コンテナへのイベント委譲で処理する。
+    // チップはコンテナへのイベント委譲で処理する。
     suggestionList.addEventListener('click', (e) => {
       const chip = e.target.closest('.suggestion-chip');
       if (!chip) return;
@@ -263,10 +235,6 @@
       promptInput.focus();
     });
 
-    shuffleBtn.addEventListener('click', () => renderSuggestions());
-
-    renderSuggestions();
-
     try {
       const saved = localStorage.getItem('fcc:selectedShape');
       const savedRatios = JSON.parse(localStorage.getItem('fcc:selectedShapeRatios') || '{}');
@@ -274,10 +242,11 @@
       if (saved) {
         promptInput.value = saved;
         updateNextState();
-        syncChipsFromText();
       }
-      syncRatios();
     } catch (e) {}
+
+    renderSuggestions();
+    syncRatios();
 
     nextBtn.addEventListener('click', () => {
       const value = promptInput.value.trim();
