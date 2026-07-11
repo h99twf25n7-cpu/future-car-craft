@@ -31,6 +31,7 @@
         aria-label="車両の形状"
       />
       <p class="prompt-hint">思い描いているボディタイプを言葉で説明してください（候補は組み合わせて選べます）</p>
+      <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
         <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -105,40 +106,58 @@
     ];
     const COMBINE_SEPARATOR = ' × ';
 
+    const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const ratioRow = document.getElementById('ratioRow');
     const ratioList = document.getElementById('ratioList');
-    let chips = [];
     let shapeRatios = {};
     let categoryIndex = 0;
 
-    function renderSuggestions() {
-      const category = CATEGORIES[categoryIndex];
-      suggestionList.innerHTML = '';
-      category.items.forEach((label) => {
+    function currentSelected() {
+      return getParts().map(extractBase);
+    }
+
+    // 選択済みの候補は、カテゴリを入れ替えても常に見えるように
+    // 候補リストの上に固定で表示する。
+    function renderSelected() {
+      const selected = currentSelected();
+      selectedList.innerHTML = '';
+      selectedList.hidden = selected.length === 0;
+      selected.forEach((label) => {
         const chip = document.createElement('button');
         chip.type = 'button';
-        chip.className = 'suggestion-chip';
+        chip.className = 'suggestion-chip is-active';
         chip.dataset.value = label;
         chip.textContent = label;
-        suggestionList.appendChild(chip);
+        selectedList.appendChild(chip);
       });
-      chips = Array.from(suggestionList.querySelectorAll('.suggestion-chip'));
-      syncChipsFromText();
+    }
+
+    // 現在のカテゴリのうち、まだ選択されていないものだけを候補として表示する。
+    function renderSuggestions() {
+      const category = CATEGORIES[categoryIndex];
+      const selected = currentSelected();
+      suggestionList.innerHTML = '';
+      category.items
+        .filter((label) => !selected.includes(label))
+        .forEach((label) => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'suggestion-chip';
+          chip.dataset.value = label;
+          chip.textContent = label;
+          suggestionList.appendChild(chip);
+        });
+    }
+
+    function refreshSuggestionUI() {
+      renderSelected();
+      renderSuggestions();
     }
 
     function updateNextState() {
       nextBtn.disabled = promptInput.value.trim().length === 0;
-    }
-
-    // 入力中のテキストに候補の文言が含まれていれば、その候補チップを
-    // 選択中として見た目に反映する（掛け合わせ状態を視覚化する）。
-    function syncChipsFromText() {
-      const value = promptInput.value;
-      chips.forEach((chip) => {
-        chip.classList.toggle('is-active', value.includes(chip.dataset.value));
-      });
     }
 
     function getParts() {
@@ -205,7 +224,7 @@
           valueLabel.textContent = slider.value;
           saveRatios();
           promptInput.value = buildDisplayText(getParts().map(extractBase));
-          syncChipsFromText();
+          refreshSuggestionUI();
           try {
             localStorage.setItem('fcc:selectedShape', promptInput.value.trim());
             localStorage.setItem('fcc:selectedShapeKey', guessShapeKey(promptInput.value));
@@ -236,7 +255,7 @@
     promptInput.addEventListener('input', () => {
       const value = promptInput.value.trim();
       updateNextState();
-      syncChipsFromText();
+      refreshSuggestionUI();
       syncRatios();
       try {
         localStorage.setItem('fcc:selectedShape', value);
@@ -268,12 +287,27 @@
       promptInput.focus();
     });
 
+    // 選択済みチップをクリックすると解除する（候補リストの上に常時表示される分）。
+    selectedList.addEventListener('click', (e) => {
+      const chip = e.target.closest('.suggestion-chip');
+      if (!chip) return;
+      const baseParts = getParts().map(extractBase);
+      const idx = baseParts.indexOf(chip.dataset.value);
+      if (idx >= 0) {
+        baseParts.splice(idx, 1);
+        delete shapeRatios[chip.dataset.value];
+      }
+      promptInput.value = buildDisplayText(baseParts);
+      promptInput.dispatchEvent(new Event('input'));
+      promptInput.focus();
+    });
+
     shuffleBtn.addEventListener('click', () => {
       categoryIndex = (categoryIndex + 1) % CATEGORIES.length;
       renderSuggestions();
     });
 
-    renderSuggestions();
+    refreshSuggestionUI();
     updateNextState();
 
     nextBtn.addEventListener('click', () => {
