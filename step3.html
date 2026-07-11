@@ -35,6 +35,7 @@
         aria-label="ボディカラー"
       />
       <p class="prompt-hint">思い描いているボディカラーを言葉で説明してください（候補は組み合わせて選べます）</p>
+      <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
         <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -80,6 +81,7 @@
     const promptInput = document.getElementById('colorPrompt');
     const nextBtn = document.getElementById('nextBtn');
     const carPreview = document.getElementById('carPreview');
+    const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const mixRow = document.getElementById('mixRow');
@@ -165,7 +167,6 @@
     const COMBINE_SEPARATOR = ' × ';
     const DEFAULT_HEX = '#8892a6';
 
-    let chips = [];
     let mixMode = 'marble';
     let colorRatios = {};
 
@@ -178,9 +179,31 @@
       return shuffled.slice(0, count);
     }
 
+    function currentSelected() {
+      return getParts().map(extractBase);
+    }
+
+    // 選択済みの候補は、シャッフルしても常に見えるように候補リストの上に固定表示する。
+    function renderSelected() {
+      const selected = currentSelected();
+      selectedList.innerHTML = '';
+      selectedList.hidden = selected.length === 0;
+      selected.forEach((label) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'suggestion-chip is-active';
+        chip.dataset.value = label;
+        chip.textContent = label;
+        selectedList.appendChild(chip);
+      });
+    }
+
+    // まだ選択されていない候補だけをランダムに表示する。
     function renderSuggestions() {
+      const selected = currentSelected();
+      const pool = SUGGESTION_POOL.filter((label) => !selected.includes(label));
       suggestionList.innerHTML = '';
-      pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT).forEach((label) => {
+      pickRandomSuggestions(pool, SUGGESTION_COUNT).forEach((label) => {
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'suggestion-chip';
@@ -188,19 +211,15 @@
         chip.textContent = label;
         suggestionList.appendChild(chip);
       });
-      chips = Array.from(suggestionList.querySelectorAll('.suggestion-chip'));
-      syncChipsFromText();
+    }
+
+    function refreshSuggestionUI() {
+      renderSelected();
+      renderSuggestions();
     }
 
     function updateNextState() {
       nextBtn.disabled = promptInput.value.trim().length === 0;
-    }
-
-    function syncChipsFromText() {
-      const value = promptInput.value;
-      chips.forEach((chip) => {
-        chip.classList.toggle('is-active', value.includes(chip.dataset.value));
-      });
     }
 
     function syncMixButtons() {
@@ -272,7 +291,7 @@
           valueLabel.textContent = slider.value;
           saveRatios();
           promptInput.value = buildDisplayText(getParts().map(extractBase));
-          syncChipsFromText();
+          refreshSuggestionUI();
           applyColorPreviewOnly();
         });
 
@@ -327,7 +346,7 @@
 
     promptInput.addEventListener('input', () => {
       updateNextState();
-      syncChipsFromText();
+      refreshSuggestionUI();
       applyColors();
     });
 
@@ -361,9 +380,22 @@
       applyColors();
     });
 
-    shuffleBtn.addEventListener('click', () => renderSuggestions());
+    // 選択済みチップをクリックすると解除する（候補リストの上に常時表示される分）。
+    selectedList.addEventListener('click', (e) => {
+      const chip = e.target.closest('.suggestion-chip');
+      if (!chip) return;
+      const baseParts = getParts().map(extractBase);
+      const idx = baseParts.indexOf(chip.dataset.value);
+      if (idx >= 0) {
+        baseParts.splice(idx, 1);
+        delete colorRatios[chip.dataset.value];
+      }
+      promptInput.value = buildDisplayText(baseParts);
+      promptInput.dispatchEvent(new Event('input'));
+      promptInput.focus();
+    });
 
-    renderSuggestions();
+    shuffleBtn.addEventListener('click', () => renderSuggestions());
 
     try {
       const saved = localStorage.getItem('fcc:selectedColor');
@@ -374,10 +406,11 @@
       if (saved) {
         promptInput.value = saved;
         updateNextState();
-        syncChipsFromText();
       }
       applyColors();
     } catch (e) {}
+
+    refreshSuggestionUI();
 
     nextBtn.addEventListener('click', () => {
       const value = promptInput.value.trim();

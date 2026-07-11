@@ -31,6 +31,7 @@
         aria-label="燃料タイプ"
       />
       <p class="prompt-hint">思い描いているパワーユニットを言葉で説明してください（候補は組み合わせて選べます）</p>
+      <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
         <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -94,11 +95,11 @@
     const SUGGESTION_COUNT = 6;
     const COMBINE_SEPARATOR = ' × ';
 
+    const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const ratioRow = document.getElementById('ratioRow');
     const ratioList = document.getElementById('ratioList');
-    let chips = [];
     let fuelRatios = {};
 
     function pickRandomSuggestions(pool, count) {
@@ -110,9 +111,31 @@
       return shuffled.slice(0, count);
     }
 
+    function currentSelected() {
+      return getParts().map(extractBase);
+    }
+
+    // 選択済みの候補は、シャッフルしても常に見えるように候補リストの上に固定表示する。
+    function renderSelected() {
+      const selected = currentSelected();
+      selectedList.innerHTML = '';
+      selectedList.hidden = selected.length === 0;
+      selected.forEach((label) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'suggestion-chip is-active';
+        chip.dataset.value = label;
+        chip.textContent = label;
+        selectedList.appendChild(chip);
+      });
+    }
+
+    // まだ選択されていない候補だけをランダムに表示する。
     function renderSuggestions() {
+      const selected = currentSelected();
+      const pool = SUGGESTION_POOL.filter((label) => !selected.includes(label));
       suggestionList.innerHTML = '';
-      pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT).forEach((label) => {
+      pickRandomSuggestions(pool, SUGGESTION_COUNT).forEach((label) => {
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'suggestion-chip';
@@ -120,21 +143,15 @@
         chip.textContent = label;
         suggestionList.appendChild(chip);
       });
-      chips = Array.from(suggestionList.querySelectorAll('.suggestion-chip'));
-      syncChipsFromText();
+    }
+
+    function refreshSuggestionUI() {
+      renderSelected();
+      renderSuggestions();
     }
 
     function updateNextState() {
       nextBtn.disabled = promptInput.value.trim().length === 0;
-    }
-
-    // 入力中のテキストに候補の文言が含まれていれば、その候補チップを
-    // 選択中として見た目に反映する（掛け合わせ状態を視覚化する）。
-    function syncChipsFromText() {
-      const value = promptInput.value;
-      chips.forEach((chip) => {
-        chip.classList.toggle('is-active', value.includes(chip.dataset.value));
-      });
     }
 
     function getParts() {
@@ -201,7 +218,7 @@
           valueLabel.textContent = slider.value;
           saveRatios();
           promptInput.value = buildDisplayText(getParts().map(extractBase));
-          syncChipsFromText();
+          refreshSuggestionUI();
           try {
             localStorage.setItem('fcc:selectedFuel', promptInput.value.trim());
             localStorage.setItem('fcc:selectedFuelIcon', guessFuelIcon(promptInput.value));
@@ -232,7 +249,7 @@
     promptInput.addEventListener('input', () => {
       const value = promptInput.value.trim();
       updateNextState();
-      syncChipsFromText();
+      refreshSuggestionUI();
       syncRatios();
       try {
         localStorage.setItem('fcc:selectedFuel', value);
@@ -264,9 +281,22 @@
       promptInput.focus();
     });
 
-    shuffleBtn.addEventListener('click', () => renderSuggestions());
+    // 選択済みチップをクリックすると解除する（候補リストの上に常時表示される分）。
+    selectedList.addEventListener('click', (e) => {
+      const chip = e.target.closest('.suggestion-chip');
+      if (!chip) return;
+      const baseParts = getParts().map(extractBase);
+      const idx = baseParts.indexOf(chip.dataset.value);
+      if (idx >= 0) {
+        baseParts.splice(idx, 1);
+        delete fuelRatios[chip.dataset.value];
+      }
+      promptInput.value = buildDisplayText(baseParts);
+      promptInput.dispatchEvent(new Event('input'));
+      promptInput.focus();
+    });
 
-    renderSuggestions();
+    shuffleBtn.addEventListener('click', () => renderSuggestions());
 
     try {
       const saved = localStorage.getItem('fcc:selectedFuel');
@@ -275,10 +305,11 @@
       if (saved) {
         promptInput.value = saved;
         updateNextState();
-        syncChipsFromText();
       }
       syncRatios();
     } catch (e) {}
+
+    refreshSuggestionUI();
 
     nextBtn.addEventListener('click', () => {
       const value = promptInput.value.trim();

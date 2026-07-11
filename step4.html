@@ -31,6 +31,7 @@
         aria-label="アートスタイル"
       />
       <p class="prompt-hint">未入力の場合は写実的な写真スタイルで生成されます</p>
+      <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
         <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -60,6 +61,7 @@
   <script>
     const promptInput = document.getElementById('stylePrompt');
     const nextBtn = document.getElementById('nextBtn');
+    const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
 
@@ -71,8 +73,6 @@
     ];
     const SUGGESTION_COUNT = 6;
 
-    let chips = [];
-
     function pickRandomSuggestions(pool, count) {
       const shuffled = [...pool];
       for (let i = shuffled.length - 1; i > 0; i--) {
@@ -82,9 +82,26 @@
       return shuffled.slice(0, count);
     }
 
+    // 選択中のスタイルは、シャッフルしても常に見えるように候補リストの上に固定表示する。
+    function renderSelected() {
+      const value = promptInput.value.trim();
+      selectedList.innerHTML = '';
+      selectedList.hidden = !value;
+      if (!value) return;
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'suggestion-chip is-active';
+      chip.dataset.value = value;
+      chip.textContent = value;
+      selectedList.appendChild(chip);
+    }
+
+    // 選択中のスタイルを除いた候補だけをランダムに表示する。
     function renderSuggestions() {
+      const value = promptInput.value.trim();
+      const pool = SUGGESTION_POOL.filter((label) => label !== value);
       suggestionList.innerHTML = '';
-      pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT).forEach((label) => {
+      pickRandomSuggestions(pool, SUGGESTION_COUNT).forEach((label) => {
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'suggestion-chip';
@@ -92,15 +109,11 @@
         chip.textContent = label;
         suggestionList.appendChild(chip);
       });
-      chips = Array.from(suggestionList.querySelectorAll('.suggestion-chip'));
-      syncChipsFromText();
     }
 
-    function syncChipsFromText() {
-      const value = promptInput.value.trim();
-      chips.forEach((chip) => {
-        chip.classList.toggle('is-active', value === chip.dataset.value);
-      });
+    function refreshSuggestionUI() {
+      renderSelected();
+      renderSuggestions();
     }
 
     function saveStyle() {
@@ -110,7 +123,7 @@
     }
 
     promptInput.addEventListener('input', () => {
-      syncChipsFromText();
+      refreshSuggestionUI();
       saveStyle();
     });
 
@@ -131,17 +144,25 @@
       promptInput.focus();
     });
 
-    shuffleBtn.addEventListener('click', () => renderSuggestions());
+    // 選択中チップをクリックすると解除する（候補リストの上に常時表示される分）。
+    selectedList.addEventListener('click', (e) => {
+      const chip = e.target.closest('.suggestion-chip');
+      if (!chip) return;
+      promptInput.value = '';
+      promptInput.dispatchEvent(new Event('input'));
+      promptInput.focus();
+    });
 
-    renderSuggestions();
+    shuffleBtn.addEventListener('click', () => renderSuggestions());
 
     try {
       const saved = localStorage.getItem('fcc:selectedStyle');
       if (saved) {
         promptInput.value = saved;
-        syncChipsFromText();
       }
     } catch (e) {}
+
+    refreshSuggestionUI();
 
     nextBtn.addEventListener('click', () => {
       saveStyle();
