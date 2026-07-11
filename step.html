@@ -31,7 +31,6 @@
         aria-label="車両の形状"
       />
       <p class="prompt-hint">思い描いているボディタイプを言葉で説明してください（候補は組み合わせて選べます）</p>
-      <p class="suggestion-category" id="suggestionCategory"></p>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
         <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -106,7 +105,6 @@
     ];
     const COMBINE_SEPARATOR = ' × ';
 
-    const suggestionCategory = document.getElementById('suggestionCategory');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const ratioRow = document.getElementById('ratioRow');
@@ -117,7 +115,6 @@
 
     function renderSuggestions() {
       const category = CATEGORIES[categoryIndex];
-      suggestionCategory.textContent = category.label;
       suggestionList.innerHTML = '';
       category.items.forEach((label) => {
         const chip = document.createElement('button');
