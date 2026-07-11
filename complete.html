@@ -35,10 +35,6 @@
     </div>
 
     <div class="ai-image" id="aiImageSection">
-      <div class="ai-image__password">
-        <label for="aiImagePassword" class="ai-image__password-label">パスワード</label>
-        <input type="password" id="aiImagePassword" class="ai-image__password-input" autocomplete="current-password" />
-      </div>
       <button type="button" class="btn-next" id="generateImageBtn">
         <span>画像を作成</span>
       </button>
@@ -214,16 +210,8 @@
     const aiImageStatus = document.getElementById('aiImageStatus');
     const aiImageResult = document.getElementById('aiImageResult');
     const aiImageImg = document.getElementById('aiImageImg');
-    const aiImagePassword = document.getElementById('aiImagePassword');
 
     generateImageBtn.addEventListener('click', async () => {
-      const password = aiImagePassword.value;
-      if (!password) {
-        aiImageStatus.textContent = 'パスワードを入力してください。';
-        aiImagePassword.focus();
-        return;
-      }
-
       generateImageBtn.disabled = true;
       aiImageStatus.textContent = '画像を生成しています…';
       aiImageResult.hidden = true;
@@ -232,10 +220,9 @@
         const res = await fetch('/api/generate-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password, prompt: buildImagePrompt() }),
+          body: JSON.stringify({ prompt: buildImagePrompt() }),
         });
         const data = await res.json();
-        aiImagePassword.value = '';
 
         if (!res.ok) {
           aiImageStatus.textContent = data.error || '画像の生成に失敗しました。もう一度お試しください。';
@@ -249,7 +236,6 @@
         generateImageBtn.disabled = false;
         generateImageBtn.querySelector('span').textContent = '別の画像を作成';
       } catch (e) {
-        aiImagePassword.value = '';
         aiImageStatus.textContent = '画像の生成に失敗しました。もう一度お試しください。';
         generateImageBtn.disabled = false;
       }
