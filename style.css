@@ -520,6 +520,34 @@ html, body {
   box-shadow: 0 0 18px rgba(0, 212, 255, 0.35);
 }
 
+.suggestion-shuffle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border: none;
+  background: transparent;
+  color: var(--clr-dim);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.suggestion-shuffle__icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.suggestion-shuffle:hover,
+.suggestion-shuffle:focus-visible {
+  color: var(--clr-accent);
+  outline: none;
+}
+
 /* Multi-color mix style picker (marble / gradient / two-tone / stripe) */
 .mix-row {
   display: flex;
@@ -744,6 +772,33 @@ body.page-scroll {
   width: 100%;
   opacity: 0;
   animation: fadeUp 0.8s var(--ease-out-expo) 0.45s forwards;
+}
+
+.ai-image__password {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ai-image__password-label {
+  font-size: 0.8rem;
+  color: var(--clr-dim);
+  letter-spacing: 0.04em;
+}
+
+.ai-image__password-input {
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  border: 1.5px solid rgba(0, 212, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--clr-text, #fff);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.ai-image__password-input:focus {
+  outline: none;
+  border-color: rgba(0, 212, 255, 0.6);
 }
 
 .ai-image__status {

@@ -32,6 +32,14 @@
       />
       <p class="prompt-hint">未入力の場合は写実的な写真スタイルで生成されます</p>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
+      <button type="button" class="suggestion-shuffle" id="shuffleBtn">
+        <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span>候補を入れ替える</span>
+      </button>
     </div>
 
     <div class="step-actions">
@@ -53,29 +61,45 @@
     const promptInput = document.getElementById('stylePrompt');
     const nextBtn = document.getElementById('nextBtn');
     const suggestionList = document.getElementById('suggestionList');
+    const shuffleBtn = document.getElementById('shuffleBtn');
 
-    // 現実的な描写スタイル＋近未来コンセプトに合う画風のプール。全件を常に一覧表示する。
+    // 現実的な描写スタイル＋近未来コンセプトに合う画風を混ぜたプール。
     const SUGGESTION_POOL = [
       '写真（フォトリアル）', '油絵', '水彩画', '鉛筆画（スケッチ）', 'アニメ風',
       '3Dレンダー', 'ピクセルアート', 'サイバーパンク風', 'ネオン', 'ミニマル',
       'ステンドグラス', 'ブループリント図面風', 'クレイアート', 'コンセプトアート',
     ];
+    const SUGGESTION_COUNT = 6;
 
-    function createChip(label, isSelected) {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = isSelected ? 'suggestion-chip is-active' : 'suggestion-chip';
-      chip.dataset.value = label;
-      chip.textContent = label;
-      return chip;
+    let chips = [];
+
+    function pickRandomSuggestions(pool, count) {
+      const shuffled = [...pool];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled.slice(0, count);
     }
 
-    // 候補は入れ替えず、プール全件を常に表示する。選択中のものは is-active で示す。
     function renderSuggestions() {
-      const current = promptInput.value.trim();
       suggestionList.innerHTML = '';
-      SUGGESTION_POOL.forEach((label) => {
-        suggestionList.appendChild(createChip(label, current === label));
+      pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT).forEach((label) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'suggestion-chip';
+        chip.dataset.value = label;
+        chip.textContent = label;
+        suggestionList.appendChild(chip);
+      });
+      chips = Array.from(suggestionList.querySelectorAll('.suggestion-chip'));
+      syncChipsFromText();
+    }
+
+    function syncChipsFromText() {
+      const value = promptInput.value.trim();
+      chips.forEach((chip) => {
+        chip.classList.toggle('is-active', value === chip.dataset.value);
       });
     }
 
@@ -86,7 +110,7 @@
     }
 
     promptInput.addEventListener('input', () => {
-      renderSuggestions();
+      syncChipsFromText();
       saveStyle();
     });
 
@@ -107,14 +131,17 @@
       promptInput.focus();
     });
 
+    shuffleBtn.addEventListener('click', () => renderSuggestions());
+
+    renderSuggestions();
+
     try {
       const saved = localStorage.getItem('fcc:selectedStyle');
       if (saved) {
         promptInput.value = saved;
+        syncChipsFromText();
       }
     } catch (e) {}
-
-    renderSuggestions();
 
     nextBtn.addEventListener('click', () => {
       saveStyle();

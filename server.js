@@ -4,6 +4,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 4004;
+const APP_PASSWORD = process.env.APP_PASSWORD;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_IMAGE_MODEL = 'gpt-image-1';
 
@@ -12,12 +13,17 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 app.post('/api/generate-image', async (req, res) => {
-  if (!OPENAI_API_KEY) {
-    res.status(500).json({ error: 'サーバー側でOPENAI_API_KEYが設定されていません。' });
+  if (!APP_PASSWORD || !OPENAI_API_KEY) {
+    res.status(500).json({ error: 'サーバー側でAPP_PASSWORDまたはOPENAI_API_KEYが設定されていません。' });
     return;
   }
 
-  const { prompt } = req.body || {};
+  const { password, prompt } = req.body || {};
+
+  if (password !== APP_PASSWORD) {
+    res.status(401).json({ error: 'パスワードが違います。' });
+    return;
+  }
 
   if (!prompt || typeof prompt !== 'string') {
     res.status(400).json({ error: 'プロンプトが指定されていません。' });
