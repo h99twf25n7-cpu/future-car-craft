@@ -40,6 +40,11 @@
         </svg>
         <span>候補を入れ替える</span>
       </button>
+
+      <div class="ratio-row" id="ratioRow" hidden>
+        <p class="ratio-row__label">比率（0〜10、0で完全に除外）</p>
+        <div class="ratio-list" id="ratioList"></div>
+      </div>
     </div>
 
     <div class="step-actions">
@@ -91,7 +96,10 @@
 
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
+    const ratioRow = document.getElementById('ratioRow');
+    const ratioList = document.getElementById('ratioList');
     let chips = [];
+    let fuelRatios = {};
 
     function pickRandomSuggestions(pool, count) {
       const shuffled = [...pool];
@@ -129,10 +137,103 @@
       });
     }
 
+    function getParts() {
+      return promptInput.value
+        .split(COMBINE_SEPARATOR)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+
+    // 「ハイブリッド(7)」のような表記から、名前部分と比率（末尾の括弧内の数字）を取り出す。
+    const RATIO_SUFFIX = /^(.*?)\((\d{1,2})\)\s*$/;
+
+    function extractBase(part) {
+      const m = part.match(RATIO_SUFFIX);
+      return m ? m[1].trim() : part.trim();
+    }
+
+    function extractRatio(part) {
+      const m = part.match(RATIO_SUFFIX);
+      return m ? Math.min(10, Math.max(0, Number(m[2]))) : null;
+    }
+
+    // 比率を「名前(数字)」の形でテキストに埋め込む。組み合わせが1件だけなら数字は付けない。
+    function buildDisplayText(baseParts) {
+      if (baseParts.length <= 1) return baseParts.join(COMBINE_SEPARATOR);
+      return baseParts.map((p) => `${p}(${fuelRatios[p] ?? 5})`).join(COMBINE_SEPARATOR);
+    }
+
+    function saveRatios() {
+      try {
+        localStorage.setItem('fcc:selectedFuelRatios', JSON.stringify(fuelRatios));
+      } catch (e) {}
+    }
+
+    // 2つ以上の燃料タイプを組み合わせたときだけ、各要素の比率（0〜10、0で完全に除外）を
+    // スライダーで調整できるようにする。
+    function renderRatioRow(baseParts) {
+      ratioRow.hidden = baseParts.length < 2;
+      ratioList.innerHTML = '';
+      if (baseParts.length < 2) return;
+      baseParts.forEach((part) => {
+        const item = document.createElement('div');
+        item.className = 'ratio-item';
+
+        const label = document.createElement('span');
+        label.className = 'ratio-item__label';
+        label.textContent = part;
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '0';
+        slider.max = '10';
+        slider.value = String(fuelRatios[part] ?? 5);
+        slider.className = 'ratio-item__slider';
+        slider.setAttribute('aria-label', `${part} の比率`);
+
+        const valueLabel = document.createElement('span');
+        valueLabel.className = 'ratio-item__value';
+        valueLabel.textContent = slider.value;
+
+        // スライダーを動かすたびに、入力欄のテキストにも「名前(数字)」として反映する。
+        slider.addEventListener('input', () => {
+          fuelRatios[part] = Number(slider.value);
+          valueLabel.textContent = slider.value;
+          saveRatios();
+          promptInput.value = buildDisplayText(getParts().map(extractBase));
+          syncChipsFromText();
+          try {
+            localStorage.setItem('fcc:selectedFuel', promptInput.value.trim());
+            localStorage.setItem('fcc:selectedFuelIcon', guessFuelIcon(promptInput.value));
+          } catch (e) {}
+        });
+
+        item.append(label, slider, valueLabel);
+        ratioList.appendChild(item);
+      });
+    }
+
+    function syncRatios() {
+      const rawParts = getParts();
+      const baseParts = rawParts.map(extractBase);
+      Object.keys(fuelRatios).forEach((k) => {
+        if (!baseParts.includes(k)) delete fuelRatios[k];
+      });
+      rawParts.forEach((raw, i) => {
+        const base = baseParts[i];
+        const explicit = extractRatio(raw);
+        if (explicit !== null) fuelRatios[base] = explicit;
+        else if (!(base in fuelRatios)) fuelRatios[base] = 5;
+      });
+      renderRatioRow(baseParts);
+      saveRatios();
+    }
+
     promptInput.addEventListener('input', () => {
       const value = promptInput.value.trim();
       updateNextState();
       syncChipsFromText();
+      syncRatios();
       try {
         localStorage.setItem('fcc:selectedFuel', value);
         localStorage.setItem('fcc:selectedFuelIcon', guessFuelIcon(value));
@@ -149,17 +250,16 @@
     suggestionList.addEventListener('click', (e) => {
       const chip = e.target.closest('.suggestion-chip');
       if (!chip) return;
-      const parts = promptInput.value
-        .split(COMBINE_SEPARATOR)
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const idx = parts.indexOf(chip.dataset.value);
+      const baseParts = getParts().map(extractBase);
+      const idx = baseParts.indexOf(chip.dataset.value);
       if (idx >= 0) {
-        parts.splice(idx, 1);
+        baseParts.splice(idx, 1);
+        delete fuelRatios[chip.dataset.value];
       } else {
-        parts.push(chip.dataset.value);
+        baseParts.push(chip.dataset.value);
+        if (!(chip.dataset.value in fuelRatios)) fuelRatios[chip.dataset.value] = 5;
       }
-      promptInput.value = parts.join(COMBINE_SEPARATOR);
+      promptInput.value = buildDisplayText(baseParts);
       promptInput.dispatchEvent(new Event('input'));
       promptInput.focus();
     });
@@ -170,11 +270,14 @@
 
     try {
       const saved = localStorage.getItem('fcc:selectedFuel');
+      const savedRatios = JSON.parse(localStorage.getItem('fcc:selectedFuelRatios') || '{}');
+      fuelRatios = savedRatios || {};
       if (saved) {
         promptInput.value = saved;
         updateNextState();
         syncChipsFromText();
       }
+      syncRatios();
     } catch (e) {}
 
     nextBtn.addEventListener('click', () => {
