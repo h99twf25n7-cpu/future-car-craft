@@ -1,19 +1,18 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const express = require('express');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 4004;
 const APP_PASSWORD = process.env.APP_PASSWORD;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = 'gemini-2.5-flash-image';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_IMAGE_MODEL = 'gpt-image-1';
 
 app.use(express.json());
 app.use(express.static(__dirname));
 
 app.post('/api/generate-image', async (req, res) => {
-  if (!APP_PASSWORD || !GEMINI_API_KEY) {
-    res.status(500).json({ error: 'サーバー側でAPP_PASSWORDまたはGEMINI_API_KEYが設定されていません。' });
+  if (!APP_PASSWORD || !OPENAI_API_KEY) {
+    res.status(500).json({ error: 'サーバー側でAPP_PASSWORDまたはOPENAI_API_KEYが設定されていません。' });
     return;
   }
 
@@ -30,37 +29,38 @@ app.post('/api/generate-image', async (req, res) => {
   }
 
   try {
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      }
-    );
+    const openaiRes = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: OPENAI_IMAGE_MODEL,
+        prompt,
+        size: '1024x1024',
+      }),
+    });
 
-    if (!geminiRes.ok) {
-      const errBody = await geminiRes.text();
-      console.error('Gemini API error:', geminiRes.status, errBody);
-      res.status(502).json({ error: '画像生成に失敗しました（Gemini APIエラー）。' });
+    if (!openaiRes.ok) {
+      const errBody = await openaiRes.text();
+      console.error('OpenAI API error:', openaiRes.status, errBody);
+      res.status(502).json({ error: '画像生成に失敗しました（OpenAI APIエラー）。' });
       return;
     }
 
-    const data = await geminiRes.json();
-    const parts = data?.candidates?.[0]?.content?.parts || [];
-    const imagePart = parts.find((p) => p.inlineData);
+    const data = await openaiRes.json();
+    const b64 = data?.data?.[0]?.b64_json;
 
-    if (!imagePart) {
-      console.error('Gemini response has no image part:', JSON.stringify(data));
+    if (!b64) {
+      console.error('OpenAI response has no image data:', JSON.stringify(data));
       res.status(502).json({ error: '画像データを取得できませんでした。' });
       return;
     }
 
     res.json({
-      mimeType: imagePart.inlineData.mimeType,
-      data: imagePart.inlineData.data,
+      mimeType: 'image/png',
+      data: b64,
     });
   } catch (err) {
     console.error('Image generation failed:', err);
