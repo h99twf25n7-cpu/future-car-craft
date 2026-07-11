@@ -206,6 +206,14 @@
       return parts.join(', ') || 'a vehicle';
     }
 
+    // GitHub Pages（静的ホスティング）にはAPIサーバーを置けないため、
+    // ローカル開発時は同一オリジンの相対パスを、公開サイトでは
+    // 別途デプロイしたRenderのバックエンドURLを叩く。
+    const API_BASE =
+      location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+        ? ''
+        : 'https://REPLACE-WITH-YOUR-RENDER-URL.onrender.com';
+
     const generateImageBtn = document.getElementById('generateImageBtn');
     const aiImageStatus = document.getElementById('aiImageStatus');
     const aiImageResult = document.getElementById('aiImageResult');
@@ -217,7 +225,7 @@
       aiImageResult.hidden = true;
 
       try {
-        const res = await fetch('/api/generate-image', {
+        const res = await fetch(`${API_BASE}/api/generate-image`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: buildImagePrompt() }),

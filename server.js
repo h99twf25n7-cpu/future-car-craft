@@ -1,11 +1,13 @@
 require('dotenv').config({ quiet: true });
 const express = require('express');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 4004;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_IMAGE_MODEL = 'gpt-image-1';
 
+app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
