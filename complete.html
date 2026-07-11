@@ -64,6 +64,12 @@
         <span>画像を作成</span>
       </button>
       <p class="ai-image__status" id="aiImageStatus" aria-live="polite"></p>
+      <div class="ai-image__progress" id="aiImageProgress" hidden>
+        <div class="ai-image__progress-track">
+          <div class="ai-image__progress-fill" id="aiImageProgressFill"></div>
+        </div>
+        <span class="ai-image__progress-text" id="aiImageProgressText">0%</span>
+      </div>
       <div class="ai-image__result" id="aiImageResult" hidden>
         <img class="ai-image__img" id="aiImageImg" alt="AIが生成した未来車のイメージ" />
       </div>
@@ -266,9 +272,42 @@
 
     const generateImageBtn = document.getElementById('generateImageBtn');
     const aiImageStatus = document.getElementById('aiImageStatus');
+    const aiImageProgress = document.getElementById('aiImageProgress');
+    const aiImageProgressFill = document.getElementById('aiImageProgressFill');
+    const aiImageProgressText = document.getElementById('aiImageProgressText');
     const aiImageResult = document.getElementById('aiImageResult');
     const aiImageImg = document.getElementById('aiImageImg');
     const aiImagePassword = document.getElementById('aiImagePassword');
+
+    // gpt-image-1 は通常のリクエストでは生成の途中経過を返さないため、
+    // 生成にかかる典型的な時間（十数秒〜数十秒）を目安に、90%までは
+    // 徐々に減速しながら近づく疑似プログレスを表示する。
+    // 実際のレスポンスが返ってきた時点で100%まで一気に進める。
+    let progressTimer = null;
+    let progressValue = 0;
+
+    function setProgress(value) {
+      progressValue = value;
+      const pct = Math.round(value);
+      aiImageProgressFill.style.width = `${pct}%`;
+      aiImageProgressText.textContent = `${pct}%`;
+    }
+
+    function startProgress() {
+      progressValue = 0;
+      setProgress(0);
+      aiImageProgress.hidden = false;
+      progressTimer = setInterval(() => {
+        setProgress(progressValue + (90 - progressValue) * 0.06 + 0.2);
+      }, 200);
+    }
+
+    function stopProgress() {
+      if (progressTimer) {
+        clearInterval(progressTimer);
+        progressTimer = null;
+      }
+    }
 
     generateImageBtn.addEventListener('click', async () => {
       const password = aiImagePassword.value;
@@ -281,6 +320,7 @@
       generateImageBtn.disabled = true;
       aiImageStatus.textContent = '画像を生成しています…';
       aiImageResult.hidden = true;
+      startProgress();
 
       try {
         const res = await fetch(`${API_BASE}/api/generate-image`, {
@@ -292,17 +332,24 @@
         aiImagePassword.value = '';
 
         if (!res.ok) {
+          stopProgress();
+          aiImageProgress.hidden = true;
           aiImageStatus.textContent = data.error || '画像の生成に失敗しました。もう一度お試しください。';
           generateImageBtn.disabled = false;
           return;
         }
 
+        stopProgress();
+        setProgress(100);
         aiImageImg.src = `data:${data.mimeType};base64,${data.data}`;
         aiImageResult.hidden = false;
         aiImageStatus.textContent = '';
+        setTimeout(() => { aiImageProgress.hidden = true; }, 400);
         generateImageBtn.disabled = false;
         generateImageBtn.querySelector('span').textContent = '別の画像を作成';
       } catch (e) {
+        stopProgress();
+        aiImageProgress.hidden = true;
         aiImagePassword.value = '';
         aiImageStatus.textContent = '画像の生成に失敗しました。もう一度お試しください。';
         generateImageBtn.disabled = false;
