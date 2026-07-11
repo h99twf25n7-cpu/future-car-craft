@@ -31,6 +31,7 @@
         aria-label="車両の形状"
       />
       <p class="prompt-hint">思い描いているボディタイプを言葉で説明してください（候補は組み合わせて選べます）</p>
+      <p class="suggestion-category" id="suggestionCategory"></p>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
         <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -38,7 +39,7 @@
           <polyline points="1 20 1 14 7 14"></polyline>
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
         </svg>
-        <span>候補を入れ替える</span>
+        <span>カテゴリを入れ替える</span>
       </button>
 
       <div class="ratio-row" id="ratioRow" hidden>
@@ -85,36 +86,40 @@
       return 'sedan';
     }
 
-    // 現実的なボディタイプ＋近未来らしいユーモア枠を混ぜたプール。
-    // ここからランダムに一部を候補として表示し、入れ替えできるようにする。
-    const SUGGESTION_POOL = [
-      'セダン', 'SUV', 'スポーツカー', 'ミニバン', 'ピックアップトラック', 'クーペ',
-      'ステーションワゴン', 'オープンカー', '軽自動車',
-      'UFO型', '恐竜型', 'ロボット型', '宇宙船型', 'カプセル型',
-      '昆虫型', '貝殻型', '雲型', '流れ星型', 'クラゲ型', '隕石型',
+    // 候補を「実在する車」「ファンタジー」のカテゴリに分けておき、
+    // ボタンではランダムな入れ替えではなくカテゴリの切り替えを行う。
+    const CATEGORIES = [
+      {
+        label: '実在する車',
+        items: [
+          'セダン', 'SUV', 'スポーツカー', 'ミニバン', 'ピックアップトラック', 'クーペ',
+          'ステーションワゴン', 'オープンカー', '軽自動車',
+        ],
+      },
+      {
+        label: 'ファンタジー',
+        items: [
+          'UFO型', '恐竜型', 'ロボット型', '宇宙船型', 'カプセル型',
+          '昆虫型', '貝殻型', '雲型', '流れ星型', 'クラゲ型', '隕石型',
+        ],
+      },
     ];
-    const SUGGESTION_COUNT = 6;
     const COMBINE_SEPARATOR = ' × ';
 
+    const suggestionCategory = document.getElementById('suggestionCategory');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const ratioRow = document.getElementById('ratioRow');
     const ratioList = document.getElementById('ratioList');
     let chips = [];
     let shapeRatios = {};
-
-    function pickRandomSuggestions(pool, count) {
-      const shuffled = [...pool];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled.slice(0, count);
-    }
+    let categoryIndex = 0;
 
     function renderSuggestions() {
+      const category = CATEGORIES[categoryIndex];
+      suggestionCategory.textContent = category.label;
       suggestionList.innerHTML = '';
-      pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT).forEach((label) => {
+      category.items.forEach((label) => {
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'suggestion-chip';
@@ -266,21 +271,13 @@
       promptInput.focus();
     });
 
-    shuffleBtn.addEventListener('click', () => renderSuggestions());
+    shuffleBtn.addEventListener('click', () => {
+      categoryIndex = (categoryIndex + 1) % CATEGORIES.length;
+      renderSuggestions();
+    });
 
     renderSuggestions();
-
-    try {
-      const saved = localStorage.getItem('fcc:selectedShape');
-      const savedRatios = JSON.parse(localStorage.getItem('fcc:selectedShapeRatios') || '{}');
-      shapeRatios = savedRatios || {};
-      if (saved) {
-        promptInput.value = saved;
-        updateNextState();
-        syncChipsFromText();
-      }
-      syncRatios();
-    } catch (e) {}
+    updateNextState();
 
     nextBtn.addEventListener('click', () => {
       const value = promptInput.value.trim();

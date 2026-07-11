@@ -479,6 +479,15 @@ html, body {
   text-align: center;
 }
 
+.suggestion-category {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--clr-accent);
+  text-align: center;
+  margin-top: 0.6rem;
+}
+
 .suggestion-list {
   display: flex;
   flex-wrap: wrap;
