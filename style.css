@@ -746,6 +746,33 @@ body.page-scroll {
   animation: fadeUp 0.8s var(--ease-out-expo) 0.45s forwards;
 }
 
+.ai-image__password {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ai-image__password-label {
+  font-size: 0.8rem;
+  color: var(--clr-dim);
+  letter-spacing: 0.04em;
+}
+
+.ai-image__password-input {
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  border: 1.5px solid rgba(0, 212, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--clr-text, #fff);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.ai-image__password-input:focus {
+  outline: none;
+  border-color: rgba(0, 212, 255, 0.6);
+}
+
 .ai-image__status {
   min-height: 1.2em;
   font-size: 0.8rem;

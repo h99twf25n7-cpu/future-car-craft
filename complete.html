@@ -35,6 +35,10 @@
     </div>
 
     <div class="ai-image" id="aiImageSection">
+      <div class="ai-image__password">
+        <label for="aiImagePassword" class="ai-image__password-label">パスワード</label>
+        <input type="password" id="aiImagePassword" class="ai-image__password-input" autocomplete="current-password" />
+      </div>
       <button type="button" class="btn-next" id="generateImageBtn">
         <span>画像を作成</span>
       </button>
@@ -104,9 +108,8 @@
       row.querySelector('span:last-child').textContent = shapeLabel;
     }
 
-    // Pollinations の画像生成エンドポイントは GET リクエストの URL に
-    // プロンプトを埋め込むだけで画像を直接返すため、サーバー側の処理なしで
-    // <img> の src に組み込める。
+    // 画像生成は /api/generate-image（サーバー側でパスワード確認 → Gemini API 呼び出し）
+    // に prompt を POST し、返ってきた base64 画像データを <img> に表示する。
     // 完全リセット状態：あらかじめ用意した英語の説明句・固定スタイル文言は
     // 一切持たない。ここに追記する定義は自分で一つずつ決めていく
     // （例："SUV": "a futuristic SUV, ..." のように追加する）。
@@ -114,7 +117,7 @@
     // 実在の車種名は使わず、規格・形状の物理的特徴だけを記述する
     // （特定車種の意匠をそのまま模倣させず、"軽自動車らしさ"を出すため）。
     const SHAPE_PROMPT_MAP = {
-      '軽自動車': 'Compact Japanese kei car, tall narrow box-shaped body, very short front/rear overhangs, wheels at the four corners, small wheels, short hood, upright A-pillars, large glass area, sliding door, yellow Japanese kei-car license plate, front three-quarter view, photorealistic, daylight',
+      '軽自動車': 'Compact Japanese kei car, one-box van-like silhouette, extremely tall roofline much taller than the car is wide, tall boxy cabin standing upright like a small box on wheels, not a hatchback, not low, not sleek, very short front/rear overhangs, wheels at the four corners, small wheels, short hood, upright A-pillars, tall greenhouse with large glass area, sliding door, yellow Japanese kei-car license plate, front three-quarter view, photorealistic, daylight',
     };
     const SHAPE_KEYS = Object.keys(SHAPE_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
@@ -207,34 +210,49 @@
       return parts.join(', ') || 'a vehicle';
     }
 
-    function buildImageUrl(prompt) {
-      const seed = Math.floor(Math.random() * 1_000_000_000);
-      return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=768&height=512&seed=${seed}&nologo=true`;
-    }
-
     const generateImageBtn = document.getElementById('generateImageBtn');
     const aiImageStatus = document.getElementById('aiImageStatus');
     const aiImageResult = document.getElementById('aiImageResult');
     const aiImageImg = document.getElementById('aiImageImg');
+    const aiImagePassword = document.getElementById('aiImagePassword');
 
-    generateImageBtn.addEventListener('click', () => {
+    generateImageBtn.addEventListener('click', async () => {
+      const password = aiImagePassword.value;
+      if (!password) {
+        aiImageStatus.textContent = 'パスワードを入力してください。';
+        aiImagePassword.focus();
+        return;
+      }
+
       generateImageBtn.disabled = true;
       aiImageStatus.textContent = '画像を生成しています…';
       aiImageResult.hidden = true;
 
-      const preload = new Image();
-      preload.onload = () => {
-        aiImageImg.src = preload.src;
+      try {
+        const res = await fetch('/api/generate-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password, prompt: buildImagePrompt() }),
+        });
+        const data = await res.json();
+        aiImagePassword.value = '';
+
+        if (!res.ok) {
+          aiImageStatus.textContent = data.error || '画像の生成に失敗しました。もう一度お試しください。';
+          generateImageBtn.disabled = false;
+          return;
+        }
+
+        aiImageImg.src = `data:${data.mimeType};base64,${data.data}`;
         aiImageResult.hidden = false;
         aiImageStatus.textContent = '';
         generateImageBtn.disabled = false;
         generateImageBtn.querySelector('span').textContent = '別の画像を作成';
-      };
-      preload.onerror = () => {
+      } catch (e) {
+        aiImagePassword.value = '';
         aiImageStatus.textContent = '画像の生成に失敗しました。もう一度お試しください。';
         generateImageBtn.disabled = false;
-      };
-      preload.src = buildImageUrl(buildImagePrompt());
+      }
     });
 
     document.getElementById('restartBtn').addEventListener('click', () => {
