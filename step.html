@@ -315,6 +315,14 @@
       } else {
         baseParts.push(chip.dataset.value);
         if (!(chip.dataset.value in shapeRatios)) shapeRatios[chip.dataset.value] = 5;
+        // 子項目を選んだら、より大まかな親カテゴリは選択から外す。
+        if (activeParent && itemLabel(activeParent) !== chip.dataset.value) {
+          const parentIdx = baseParts.indexOf(itemLabel(activeParent));
+          if (parentIdx >= 0) {
+            baseParts.splice(parentIdx, 1);
+            delete shapeRatios[itemLabel(activeParent)];
+          }
+        }
       }
       promptInput.value = buildDisplayText(baseParts);
       promptInput.dispatchEvent(new Event('input'));
