@@ -479,20 +479,6 @@ html, body {
   text-align: center;
 }
 
-.suggestion-selected {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.6rem;
-  margin-top: 0.2rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid rgba(0, 212, 255, 0.15);
-}
-
-.suggestion-selected[hidden] {
-  display: none;
-}
-
 .suggestion-list {
   display: flex;
   flex-wrap: wrap;
@@ -532,6 +518,11 @@ html, body {
   color: var(--clr-bg);
   background: var(--clr-accent);
   box-shadow: 0 0 18px rgba(0, 212, 255, 0.35);
+}
+
+/* 選択済みの候補は並び替えず、その場を空白の穴にして枠を保持する。 */
+.suggestion-chip.is-hole {
+  visibility: hidden;
 }
 
 .suggestion-shuffle {
