@@ -87,10 +87,13 @@
     }
 
     // 実在する燃料タイプのみのプール。ここからランダムに一部を候補として表示し、
-    // 入れ替えできるようにする。
+    // 入れ替えできるようにする。一部の項目はさらに子項目を持ち、クリックすると
+    // 候補リストがその子項目に切り替わる2段階構造になっている。
     const SUGGESTION_POOL = [
-      'ガソリン', 'ディーゼル', 'ハイブリッド', 'プラグインハイブリッド', 'EV（電気）', '水素（FCV）',
-      '太陽光', '風力',
+      'ガソリン', 'ディーゼル',
+      { label: 'ハイブリッド', children: ['マイルドハイブリッド', 'ストロングハイブリッド', 'プラグインハイブリッド'] },
+      { label: 'EV（電気）', children: ['リチウムイオン電池', '全固体電池', '急速充電対応'] },
+      '水素（FCV）', '太陽光', '風力',
     ];
     const SUGGESTION_COUNT = 6;
     const COMBINE_SEPARATOR = ' × ';
@@ -102,6 +105,15 @@
     const ratioList = document.getElementById('ratioList');
     let fuelRatios = {};
     let currentPicks = [];
+    let activeParent = null;
+
+    function itemLabel(item) {
+      return typeof item === 'string' ? item : item.label;
+    }
+
+    function itemChildren(item) {
+      return typeof item === 'string' ? null : item.children;
+    }
 
     function pickRandomSuggestions(pool, count) {
       const shuffled = [...pool];
@@ -136,15 +148,30 @@
     }
 
     // 選択済みの候補は並び替えず、その場を空白の穴にして位置を保持する。
+    // 子項目を持つ候補は、そこから2段階目の候補一覧に切り替えられる。
     function renderSuggestions() {
       const selected = currentSelected();
+      const items = activeParent ? itemChildren(activeParent) : currentPicks;
       suggestionList.innerHTML = '';
-      currentPicks.forEach((label) => {
+
+      if (activeParent) {
+        const backChip = document.createElement('button');
+        backChip.type = 'button';
+        backChip.className = 'suggestion-chip suggestion-chip--back';
+        backChip.dataset.action = 'back';
+        backChip.textContent = `← ${itemLabel(activeParent)}`;
+        suggestionList.appendChild(backChip);
+      }
+
+      items.forEach((item) => {
+        const label = itemLabel(item);
+        const children = itemChildren(item);
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = selected.includes(label) ? 'suggestion-chip is-hole' : 'suggestion-chip';
+        if (children) chip.classList.add('has-children');
         chip.dataset.value = label;
-        chip.textContent = label;
+        chip.textContent = children ? `${label} ›` : label;
         suggestionList.appendChild(chip);
       });
     }
@@ -269,8 +296,15 @@
 
     // チップは入れ替え機能で作り直されるため、コンテナへのイベント委譲で処理する。
     suggestionList.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="back"]')) {
+        activeParent = null;
+        renderSuggestions();
+        return;
+      }
+
       const chip = e.target.closest('.suggestion-chip');
       if (!chip || chip.classList.contains('is-hole')) return;
+
       const baseParts = getParts().map(extractBase);
       const idx = baseParts.indexOf(chip.dataset.value);
       if (idx >= 0) {
@@ -282,6 +316,12 @@
       }
       promptInput.value = buildDisplayText(baseParts);
       promptInput.dispatchEvent(new Event('input'));
+
+      if (chip.classList.contains('has-children')) {
+        const items = activeParent ? itemChildren(activeParent) : currentPicks;
+        activeParent = items.find((it) => itemLabel(it) === chip.dataset.value) || null;
+        renderSuggestions();
+      }
     });
 
     // 選択済みチップをクリックすると解除する（候補リストの上に常時表示される分）。
@@ -300,6 +340,7 @@
 
     shuffleBtn.addEventListener('click', () => {
       pickNewSuggestions();
+      activeParent = null;
       refreshSuggestionUI();
     });
 

@@ -103,6 +103,8 @@
       'ミントグリーン': '#38e0a8',
       'スカイブルー': '#4fd0ff',
       'ゴールド': '#d4af37',
+      'ブルー系': '#2d6cdf',
+      'グリーン系': '#2ecc71',
       'マゼンタ': '#ff2fa0',
       'パープル': '#7b4fff',
       'オレンジ': '#ff7a1a',
@@ -157,11 +159,15 @@
         .filter(Boolean);
     }
 
-    // 現実的なカラー＋近未来らしい鮮やかなカラーを混ぜたプール。
+    // 現実的なカラー＋近未来らしい鮮やかなカラーを混ぜたプール。一部の項目は
+    // さらに子項目を持ち、クリックすると候補リストがその子項目に切り替わる
+    // 2段階構造になっている。
     const SUGGESTION_POOL = [
-      'パールホワイト', 'クリスタルブラック', 'シルバーメタリック', 'ディープブルー',
-      'レーシングレッド', 'マットグレー', 'シャンパンゴールド', 'ネオングリーン',
-      'マゼンタ', 'パープル', 'オレンジ', 'イエロー', 'ミントグリーン', 'スカイブルー',
+      'パールホワイト', 'クリスタルブラック', 'シルバーメタリック',
+      { label: 'ブルー系', children: ['ディープブルー', 'スカイブルー'] },
+      'レーシングレッド', 'マットグレー', 'シャンパンゴールド',
+      { label: 'グリーン系', children: ['ネオングリーン', 'ミントグリーン'] },
+      'マゼンタ', 'パープル', 'オレンジ', 'イエロー',
     ];
     const SUGGESTION_COUNT = 6;
     const COMBINE_SEPARATOR = ' × ';
@@ -170,6 +176,15 @@
     let mixMode = 'marble';
     let colorRatios = {};
     let currentPicks = [];
+    let activeParent = null;
+
+    function itemLabel(item) {
+      return typeof item === 'string' ? item : item.label;
+    }
+
+    function itemChildren(item) {
+      return typeof item === 'string' ? null : item.children;
+    }
 
     function pickRandomSuggestions(pool, count) {
       const shuffled = [...pool];
@@ -204,15 +219,30 @@
     }
 
     // 選択済みの候補は並び替えず、その場を空白の穴にして位置を保持する。
+    // 子項目を持つ候補は、そこから2段階目の候補一覧に切り替えられる。
     function renderSuggestions() {
       const selected = currentSelected();
+      const items = activeParent ? itemChildren(activeParent) : currentPicks;
       suggestionList.innerHTML = '';
-      currentPicks.forEach((label) => {
+
+      if (activeParent) {
+        const backChip = document.createElement('button');
+        backChip.type = 'button';
+        backChip.className = 'suggestion-chip suggestion-chip--back';
+        backChip.dataset.action = 'back';
+        backChip.textContent = `← ${itemLabel(activeParent)}`;
+        suggestionList.appendChild(backChip);
+      }
+
+      items.forEach((item) => {
+        const label = itemLabel(item);
+        const children = itemChildren(item);
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = selected.includes(label) ? 'suggestion-chip is-hole' : 'suggestion-chip';
+        if (children) chip.classList.add('has-children');
         chip.dataset.value = label;
-        chip.textContent = label;
+        chip.textContent = children ? `${label} ›` : label;
         suggestionList.appendChild(chip);
       });
     }
@@ -361,8 +391,15 @@
     });
 
     suggestionList.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="back"]')) {
+        activeParent = null;
+        renderSuggestions();
+        return;
+      }
+
       const chip = e.target.closest('.suggestion-chip');
       if (!chip || chip.classList.contains('is-hole')) return;
+
       const baseParts = getParts().map(extractBase);
       const idx = baseParts.indexOf(chip.dataset.value);
       if (idx >= 0) {
@@ -374,6 +411,12 @@
       }
       promptInput.value = buildDisplayText(baseParts);
       promptInput.dispatchEvent(new Event('input'));
+
+      if (chip.classList.contains('has-children')) {
+        const items = activeParent ? itemChildren(activeParent) : currentPicks;
+        activeParent = items.find((it) => itemLabel(it) === chip.dataset.value) || null;
+        renderSuggestions();
+      }
     });
 
     mixOptions.addEventListener('click', (e) => {
@@ -399,6 +442,7 @@
 
     shuffleBtn.addEventListener('click', () => {
       pickNewSuggestions();
+      activeParent = null;
       refreshSuggestionUI();
     });
 

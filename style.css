@@ -539,6 +539,18 @@ html, body {
   visibility: hidden;
 }
 
+/* 子項目を持つ候補は、選ぶとその子項目の一覧に切り替わることを示す。 */
+.suggestion-chip.has-children {
+  border-style: dashed;
+}
+
+/* 2段階目の候補一覧から1段階目に戻るためのチップ。 */
+.suggestion-chip--back {
+  border-style: dashed;
+  color: var(--clr-accent);
+  background: transparent;
+}
+
 .suggestion-shuffle {
   display: inline-flex;
   align-items: center;

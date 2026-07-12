@@ -65,14 +65,27 @@
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
 
-    // 現実的な描写スタイル＋近未来コンセプトに合う画風を混ぜたプール。
+    // 現実的な描写スタイル＋近未来コンセプトに合う画風を混ぜたプール。一部の項目は
+    // さらに子項目を持ち、クリックすると候補リストがその子項目に切り替わる
+    // 2段階構造になっている。
     const SUGGESTION_POOL = [
-      '写真（フォトリアル）', '油絵', '水彩画', '鉛筆画（スケッチ）', 'アニメ風',
-      '3Dレンダー', 'ピクセルアート', 'サイバーパンク風', 'ネオン', 'ミニマル',
+      '写真（フォトリアル）', '油絵', '水彩画', '鉛筆画（スケッチ）',
+      { label: 'アニメ風', children: ['セル画風', '劇画風', 'ジブリ風'] },
+      { label: '3Dレンダー', children: ['フォトリアルCG', 'トゥーンレンダー', 'ワイヤーフレーム'] },
+      'ピクセルアート', 'サイバーパンク風', 'ネオン', 'ミニマル',
       'ステンドグラス', 'ブループリント図面風', 'クレイアート', 'コンセプトアート',
     ];
     const SUGGESTION_COUNT = 6;
     let currentPicks = [];
+    let activeParent = null;
+
+    function itemLabel(item) {
+      return typeof item === 'string' ? item : item.label;
+    }
+
+    function itemChildren(item) {
+      return typeof item === 'string' ? null : item.children;
+    }
 
     function pickRandomSuggestions(pool, count) {
       const shuffled = [...pool];
@@ -102,15 +115,30 @@
     }
 
     // 選択中のスタイルは並び替えず、その場を空白の穴にして位置を保持する。
+    // 子項目を持つ候補は、そこから2段階目の候補一覧に切り替えられる。
     function renderSuggestions() {
       const value = promptInput.value.trim();
+      const items = activeParent ? itemChildren(activeParent) : currentPicks;
       suggestionList.innerHTML = '';
-      currentPicks.forEach((label) => {
+
+      if (activeParent) {
+        const backChip = document.createElement('button');
+        backChip.type = 'button';
+        backChip.className = 'suggestion-chip suggestion-chip--back';
+        backChip.dataset.action = 'back';
+        backChip.textContent = `← ${itemLabel(activeParent)}`;
+        suggestionList.appendChild(backChip);
+      }
+
+      items.forEach((item) => {
+        const label = itemLabel(item);
+        const children = itemChildren(item);
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = label === value ? 'suggestion-chip is-hole' : 'suggestion-chip';
+        if (children) chip.classList.add('has-children');
         chip.dataset.value = label;
-        chip.textContent = label;
+        chip.textContent = children ? `${label} ›` : label;
         suggestionList.appendChild(chip);
       });
     }
@@ -139,10 +167,23 @@
 
     // アートスタイルは複数選択不可。候補チップをクリックすると既存の選択を置き換える単一選択として動作する。
     suggestionList.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="back"]')) {
+        activeParent = null;
+        renderSuggestions();
+        return;
+      }
+
       const chip = e.target.closest('.suggestion-chip');
       if (!chip || chip.classList.contains('is-hole')) return;
+
       promptInput.value = chip.dataset.value;
       promptInput.dispatchEvent(new Event('input'));
+
+      if (chip.classList.contains('has-children')) {
+        const items = activeParent ? itemChildren(activeParent) : currentPicks;
+        activeParent = items.find((it) => itemLabel(it) === chip.dataset.value) || null;
+        renderSuggestions();
+      }
     });
 
     // 選択中チップをクリックすると解除する（候補リストの上に常時表示される分）。
@@ -155,6 +196,7 @@
 
     shuffleBtn.addEventListener('click', () => {
       pickNewSuggestions();
+      activeParent = null;
       refreshSuggestionUI();
     });
 
