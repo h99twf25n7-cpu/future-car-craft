@@ -479,6 +479,20 @@ html, body {
   text-align: center;
 }
 
+.suggestion-selected {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+}
+
+.suggestion-selected[hidden] {
+  display: none;
+}
+
 .suggestion-list {
   display: flex;
   flex-wrap: wrap;
@@ -607,7 +621,7 @@ html, body {
 
 .ratio-item {
   display: grid;
-  grid-template-columns: minmax(90px, auto) 1fr 24px;
+  grid-template-columns: 90px 1fr 24px;
   align-items: center;
   gap: 0.7rem;
 }

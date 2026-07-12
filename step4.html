@@ -31,6 +31,7 @@
         aria-label="アートスタイル"
       />
       <p class="prompt-hint">未入力の場合は写実的な写真スタイルで生成されます</p>
+      <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
         <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -60,6 +61,7 @@
   <script>
     const promptInput = document.getElementById('stylePrompt');
     const nextBtn = document.getElementById('nextBtn');
+    const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
 
@@ -85,6 +87,20 @@
       currentPicks = pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT);
     }
 
+    // 選択中のスタイルは、常に見えるように候補リストの上に固定表示する。
+    function renderSelected() {
+      const value = promptInput.value.trim();
+      selectedList.innerHTML = '';
+      selectedList.hidden = !value;
+      if (!value) return;
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'suggestion-chip is-active';
+      chip.dataset.value = value;
+      chip.textContent = value;
+      selectedList.appendChild(chip);
+    }
+
     // 選択中のスタイルは並び替えず、その場を空白の穴にして位置を保持する。
     function renderSuggestions() {
       const value = promptInput.value.trim();
@@ -100,6 +116,7 @@
     }
 
     function refreshSuggestionUI() {
+      renderSelected();
       renderSuggestions();
     }
 
@@ -125,6 +142,14 @@
       const chip = e.target.closest('.suggestion-chip');
       if (!chip || chip.classList.contains('is-hole')) return;
       promptInput.value = chip.dataset.value;
+      promptInput.dispatchEvent(new Event('input'));
+    });
+
+    // 選択中チップをクリックすると解除する（候補リストの上に常時表示される分）。
+    selectedList.addEventListener('click', (e) => {
+      const chip = e.target.closest('.suggestion-chip');
+      if (!chip) return;
+      promptInput.value = '';
       promptInput.dispatchEvent(new Event('input'));
     });
 
