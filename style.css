@@ -447,7 +447,7 @@ html, body {
   border-radius: 10px;
   background: rgba(0, 212, 255, 0.03);
   color: var(--clr-white);
-  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  font-size: clamp(1rem, 1.6vw, 1.05rem);
   letter-spacing: 0.02em;
   text-align: center;
   transition:

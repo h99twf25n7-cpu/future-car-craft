@@ -141,7 +141,6 @@
       const current = promptInput.value.trim();
       promptInput.value = current === chip.dataset.value ? '' : chip.dataset.value;
       promptInput.dispatchEvent(new Event('input'));
-      promptInput.focus();
     });
 
     // 選択中チップをクリックすると解除する（候補リストの上に常時表示される分）。
@@ -150,7 +149,6 @@
       if (!chip) return;
       promptInput.value = '';
       promptInput.dispatchEvent(new Event('input'));
-      promptInput.focus();
     });
 
     shuffleBtn.addEventListener('click', () => renderSuggestions());
