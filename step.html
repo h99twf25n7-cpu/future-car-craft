@@ -299,7 +299,7 @@
 
     shuffleBtn.addEventListener('click', () => {
       categoryIndex = (categoryIndex + 1) % CATEGORIES.length;
-      renderSuggestions();
+      refreshSuggestionUI();
     });
 
     refreshSuggestionUI();
