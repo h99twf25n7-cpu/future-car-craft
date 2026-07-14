@@ -32,6 +32,7 @@
       />
       <p class="prompt-hint">思い描いているボディタイプを言葉で説明してください（候補は組み合わせて選べます）</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
+      <p class="suggestion-category" id="suggestionCategory"></p>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
         <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -115,6 +116,7 @@
 
     const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
+    const suggestionCategory = document.getElementById('suggestionCategory');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const ratioRow = document.getElementById('ratioRow');
     const ratioList = document.getElementById('ratioList');
@@ -155,6 +157,7 @@
       const category = CATEGORIES[categoryIndex];
       const selected = currentSelected();
       const items = activeParent ? itemChildren(activeParent) : category.items;
+      suggestionCategory.textContent = category.label;
       suggestionList.innerHTML = '';
 
       if (activeParent) {
