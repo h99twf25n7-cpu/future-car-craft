@@ -69,24 +69,11 @@
 
     // 3D preview には既定のプリセット形状しか無いため、自由入力からキーワードで
     // 最も近いプリセットを推定してフォールバックとして保存する。
-    // ユーモア系の候補も、見た目の近いプリセットへざっくり寄せている。
     function guessShapeKey(text) {
-      const t = text.toLowerCase();
-      const rules = [
-        { key: 'kei', words: ['軽自動車', '軽自', 'kei car', 'kei'] },
-        { key: 'suv', words: ['suv', 'クロスオーバー', 'オフロード', '4wd', 'awd', 'ライオン', 'キリン'] },
-        { key: 'sports', words: ['スポーツ', 'sports', 'スーパーカー', 'super', 'レーシング', 'racing', 'サメ'] },
-        { key: 'minivan', words: ['ミニバン', 'minivan', 'van', 'ワゴン', 'ファミリー', 'クラゲ', 'クジラ'] },
-        { key: 'truck', words: ['トラック', 'truck', 'ピックアップ', 'pickup', '恐竜', 'ティラノサウルス', 'トリケラトプス', 'プテラノドン', 'ステゴサウルス', 'ゾウ'] },
-        { key: 'coupe', words: ['クーペ', 'coupe', '貝殻', 'タコ'] },
-      ];
-      for (const rule of rules) {
-        if (rule.words.some((w) => t.includes(w))) return rule.key;
-      }
       return 'sedan';
     }
 
-    // 候補を「実在する車」「陸上生物」「海洋生物」「昆虫」のカテゴリに分けておき、
+    // 候補を「実在する車」「生物」のカテゴリに分けておき、
     // ボタンではランダムな入れ替えではなくカテゴリの切り替えを行う。
     // 一部の項目はさらに子項目（サブカテゴリ）を持ち、クリックすると
     // 候補リストがその子項目に切り替わる2段階構造になっている。
@@ -100,7 +87,7 @@
       },
       {
         label: '生物',
-        items: ['陸上生物', { label: '海洋生物', children: [] }, { label: '昆虫', children: [] }],
+        items: [],
       },
     ];
     const COMBINE_SEPARATOR = ' × ';
