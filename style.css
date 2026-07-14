@@ -493,15 +493,6 @@ html, body {
   display: none;
 }
 
-.suggestion-category {
-  font-size: 0.8rem;
-  color: var(--clr-accent);
-  letter-spacing: 0.08em;
-  text-align: center;
-  margin-top: 0.4rem;
-  margin-bottom: -0.2rem;
-}
-
 .suggestion-list {
   display: flex;
   flex-wrap: wrap;
