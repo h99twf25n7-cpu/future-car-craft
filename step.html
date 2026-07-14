@@ -100,7 +100,7 @@
       },
       {
         label: '生物',
-        items: ['陸上生物', '海洋生物', '昆虫'],
+        items: ['陸上生物', { label: '海洋生物', children: [] }, '昆虫'],
       },
     ];
     const COMBINE_SEPARATOR = ' × ';
@@ -300,6 +300,15 @@
       const chip = e.target.closest('.suggestion-chip');
       if (!chip || chip.classList.contains('is-hole')) return;
 
+      // 子項目を持つチップは開くだけで、テキストには追加しない。
+      if (chip.classList.contains('has-children')) {
+        const category = CATEGORIES[categoryIndex];
+        const items = activeParent ? itemChildren(activeParent) : category.items;
+        activeParent = items.find((it) => itemLabel(it) === chip.dataset.value) || null;
+        renderSuggestions();
+        return;
+      }
+
       const baseParts = getParts().map(extractBase);
       const idx = baseParts.indexOf(chip.dataset.value);
       if (idx >= 0) {
@@ -308,24 +317,9 @@
       } else {
         baseParts.push(chip.dataset.value);
         if (!(chip.dataset.value in shapeRatios)) shapeRatios[chip.dataset.value] = 5;
-        // 子項目を選んだら、より大まかな親カテゴリは選択から外す。
-        if (activeParent && itemLabel(activeParent) !== chip.dataset.value) {
-          const parentIdx = baseParts.indexOf(itemLabel(activeParent));
-          if (parentIdx >= 0) {
-            baseParts.splice(parentIdx, 1);
-            delete shapeRatios[itemLabel(activeParent)];
-          }
-        }
       }
       promptInput.value = buildDisplayText(baseParts);
       promptInput.dispatchEvent(new Event('input'));
-
-      if (chip.classList.contains('has-children')) {
-        const category = CATEGORIES[categoryIndex];
-        const items = activeParent ? itemChildren(activeParent) : category.items;
-        activeParent = items.find((it) => itemLabel(it) === chip.dataset.value) || null;
-        renderSuggestions();
-      }
     });
 
     // 選択済みチップをクリックすると解除する（候補リストの上に常時表示される分）。
