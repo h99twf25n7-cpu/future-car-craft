@@ -30,6 +30,14 @@ app.post('/api/generate-image', async (req, res) => {
     return;
   }
 
+  const ORIGINALITY_CLAUSE =
+    'This must depict a completely original, fictional concept vehicle design. ' +
+    'Do not reproduce, reference, or closely resemble the design, silhouette, badges, ' +
+    'logos, or brand-specific styling cues of any existing real-world car manufacturer ' +
+    'or production model, even loosely. Invent novel proportions and details rather than ' +
+    'basing the design on any specific real vehicle.';
+  const fullPrompt = `${prompt}. ${ORIGINALITY_CLAUSE}`;
+
   try {
     const openaiRes = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -39,7 +47,7 @@ app.post('/api/generate-image', async (req, res) => {
       },
       body: JSON.stringify({
         model: OPENAI_IMAGE_MODEL,
-        prompt,
+        prompt: fullPrompt,
         size: '1536x1024',
         quality: 'low',
       }),
