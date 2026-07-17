@@ -40,7 +40,7 @@ app.post('/api/generate-image', async (req, res) => {
       body: JSON.stringify({
         model: OPENAI_IMAGE_MODEL,
         prompt,
-        size: '1024x1024',
+        size: '1536x1024',
         quality: 'low',
       }),
     });
