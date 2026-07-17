@@ -685,7 +685,7 @@ html, body {
   min-width: 200px;
   min-height: 64px;
   padding: 0 2.4rem;
-  border: 1.5px solid var(--clr-accent);
+  border: none;
   border-radius: 4px;
   background: transparent;
   color: var(--clr-accent);
