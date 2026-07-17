@@ -715,7 +715,7 @@ html, body {
 }
 
 .btn-next:disabled {
-  opacity: 0.3;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
