@@ -216,20 +216,28 @@ html, body {
 .stage {
   position: relative;
   z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 100vh;
   padding: 2rem;
 }
 
 /* ---------- Hero block ------------------------------------- */
+/* Title and CTA are placed independently on the golden-ratio
+   points (38.2% / 61.8% of the viewport height) rather than as
+   one flex-centered group. */
 .hero {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+}
+
+.cta {
+  position: absolute;
+  top: 61.8%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
-  text-align: center;
 }
 
 /* Eyebrow label */
@@ -246,6 +254,11 @@ html, body {
 
 /* Main title */
 .title {
+  position: absolute;
+  top: 38.2%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
   display: flex;
   gap: 0.35em;
   flex-wrap: wrap;
@@ -255,7 +268,6 @@ html, body {
   letter-spacing: -0.02em;
   line-height: 1;
   text-transform: uppercase;
-  margin-bottom: 3.5rem;
   user-select: none;
 }
 
@@ -298,7 +310,6 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2.5rem;
   min-width: 260px;
   min-height: 80px;
   padding: 0 3rem;
