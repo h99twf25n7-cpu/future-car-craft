@@ -298,6 +298,7 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-top: 2.5rem;
   min-width: 260px;
   min-height: 80px;
   padding: 0 3rem;
