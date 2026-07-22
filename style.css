@@ -1163,3 +1163,83 @@ body.page-scroll {
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
+
+/* ============================================================
+   Golden-ratio guide overlay — floating control injected by
+   phi-grid.js. Purely additive UI; toggled on/off, hidden by
+   default, does not alter existing layout.
+   ============================================================ */
+.phi-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.phi-grid-visible .phi-grid {
+  opacity: 1;
+}
+
+.phi-grid__line {
+  position: absolute;
+  background: rgba(255, 207, 92, 0.55);
+  box-shadow: 0 0 6px rgba(255, 207, 92, 0.35);
+}
+
+.phi-grid__line--v-38,
+.phi-grid__line--v-62 {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.phi-grid__line--v-38 { left: 38.2%; }
+.phi-grid__line--v-62 { left: 61.8%; }
+
+.phi-grid__line--h-38,
+.phi-grid__line--h-62 {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.phi-grid__line--h-38 { top: 38.2%; }
+.phi-grid__line--h-62 { top: 61.8%; }
+
+.phi-grid-toggle {
+  position: fixed;
+  top: 1.1rem;
+  right: 1.1rem;
+  z-index: 200;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(var(--clr-white-rgb), 0.25);
+  background: rgba(6, 9, 16, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(var(--clr-white-rgb), 0.6);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.phi-grid-toggle:hover,
+.phi-grid-toggle:focus-visible {
+  border-color: #ffcf5c;
+  outline: none;
+}
+
+.phi-grid-toggle.is-active {
+  color: #ffcf5c;
+  border-color: #ffcf5c;
+  box-shadow: 0 0 18px rgba(255, 207, 92, 0.35);
+}
