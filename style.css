@@ -26,6 +26,11 @@ button {
   --clr-grid:      rgba(var(--clr-accent-rgb), 0.06);
 
   --font-main: 'Helvetica Neue', 'Arial', sans-serif;
+  --font-display: var(--font-main);
+  --radius-btn:  4px;
+  --radius-card: 10px;
+  --radius-chip: 999px;
+  --border-w:    1.5px;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -35,7 +40,8 @@ button {
    are untouched. Applied via [data-theme] on <html>.
    ============================================================ */
 
-/* 01: Neon Cyan (default) — original cyan / violet */
+/* 01: Neon Cyan (default) — cyberpunk HUD: perspective grid, outline
+   buttons with a fill-sweep on hover, sharp-ish 4px corners. */
 :root[data-theme="default"] {
   --clr-bg:        #050810;
   --clr-bg-mid:    #0b1120;
@@ -45,9 +51,17 @@ button {
   --clr-accent-rgb:  0, 212, 255;
   --clr-accent2-rgb: 123, 79, 255;
   --clr-white-rgb:   232, 240, 255;
+
+  --font-main:    'Helvetica Neue', 'Arial', sans-serif;
+  --font-display: 'Helvetica Neue', 'Arial', sans-serif;
+  --radius-btn:  4px;
+  --radius-card: 10px;
+  --radius-chip: 999px;
+  --border-w:    1.5px;
 }
 
-/* 02: Synthwave Sunset — magenta / amber on deep violet-black */
+/* 02: Synthwave Sunset — retro outrun: grid + CRT scanlines, pill
+   buttons filled solid with an accent gradient from the start. */
 :root[data-theme="synthwave"] {
   --clr-bg:        #0d0512;
   --clr-bg-mid:    #1a0a24;
@@ -57,9 +71,17 @@ button {
   --clr-accent-rgb:  255, 94, 203;
   --clr-accent2-rgb: 255, 180, 67;
   --clr-white-rgb:   251, 233, 255;
+
+  --font-main:    'Century Gothic', 'Futura', 'Trebuchet MS', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  --font-display: 'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif;
+  --radius-btn:  999px;
+  --radius-card: 20px;
+  --radius-chip: 999px;
+  --border-w:    2px;
 }
 
-/* 03: Digital Green — matrix-style green / teal on near-black */
+/* 03: Digital Green — terminal / matrix: flat CRT scanlines (no
+   perspective), monospace type, hard 0px corners, dashed panels. */
 :root[data-theme="matrix"] {
   --clr-bg:        #020a05;
   --clr-bg-mid:    #051f10;
@@ -69,9 +91,17 @@ button {
   --clr-accent-rgb:  57, 255, 136;
   --clr-accent2-rgb: 0, 255, 200;
   --clr-white-rgb:   232, 255, 240;
+
+  --font-main:    'Courier New', ui-monospace, 'SFMono-Regular', Menlo, monospace, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  --font-display: 'Courier New', ui-monospace, monospace;
+  --radius-btn:  0px;
+  --radius-card: 0px;
+  --radius-chip: 2px;
+  --border-w:    2px;
 }
 
-/* 04: Inferno Red — red / orange on charcoal-black */
+/* 04: Inferno Red — industrial hazard: diagonal stripe backdrop,
+   solid filled buttons, thick borders, near-square corners. */
 :root[data-theme="inferno"] {
   --clr-bg:        #0d0302;
   --clr-bg-mid:    #220805;
@@ -81,9 +111,17 @@ button {
   --clr-accent-rgb:  255, 77, 77;
   --clr-accent2-rgb: 255, 157, 61;
   --clr-white-rgb:   255, 240, 232;
+
+  --font-main:    'Arial Black', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  --font-display: 'Arial Black', 'Arial', sans-serif;
+  --radius-btn:  2px;
+  --radius-card: 2px;
+  --radius-chip: 2px;
+  --border-w:    3px;
 }
 
-/* 05: Royal Gold — gold / lilac on warm black */
+/* 05: Royal Gold — luxury glass: soft vignette instead of a grid,
+   serif display type, frosted glass panels, thin hairline borders. */
 :root[data-theme="royal"] {
   --clr-bg:        #0a0704;
   --clr-bg-mid:    #1c150a;
@@ -93,9 +131,17 @@ button {
   --clr-accent-rgb:  255, 207, 92;
   --clr-accent2-rgb: 201, 164, 255;
   --clr-white-rgb:   255, 248, 232;
+
+  --font-main:    'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  --font-display: 'Georgia', 'Times New Roman', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
+  --radius-btn:  999px;
+  --radius-card: 16px;
+  --radius-chip: 999px;
+  --border-w:    1px;
 }
 
-/* 06: Arctic Blue — ice blue / pale cyan on deep navy */
+/* 06: Arctic Blue — frosted glacier: soft frost dots, glass panels,
+   light rounded corners, airy sans display type. */
 :root[data-theme="arctic"] {
   --clr-bg:        #020610;
   --clr-bg-mid:    #061527;
@@ -105,6 +151,13 @@ button {
   --clr-accent-rgb:  111, 216, 255;
   --clr-accent2-rgb: 178, 242, 255;
   --clr-white-rgb:   232, 248, 255;
+
+  --font-main:    'Segoe UI', 'Helvetica Neue', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  --font-display: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --radius-btn:  14px;
+  --radius-card: 14px;
+  --radius-chip: 999px;
+  --border-w:    1px;
 }
 
 html, body {
@@ -245,12 +298,13 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6em;
   min-width: 260px;
   min-height: 80px;
   padding: 0 3rem;
-  border: 1.5px solid var(--clr-accent);
-  border-radius: 4px;
+  border-style: solid;
+  border-width: var(--border-w, 1.5px);
+  border-color: var(--clr-accent);
+  border-radius: var(--radius-btn, 4px);
   background: transparent;
   color: var(--clr-accent);
   text-decoration: none;
@@ -300,18 +354,10 @@ html, body {
   transform: scale(0.97);
 }
 
-.btn-start__label,
-.btn-start__arrow {
+.btn-start__label {
   position: relative;
   z-index: 1;
-}
-
-.btn-start__arrow {
-  font-size: 1.1em;
-  transition: transform 0.3s var(--ease-out-expo);
-}
-.btn-start:hover .btn-start__arrow {
-  transform: translateX(6px);
+  margin-right: -0.3em;
 }
 
 /* Animated ring (decorative pulse) */
@@ -319,7 +365,7 @@ html, body {
   position: absolute;
   inset: -8px;
   border: 1px solid var(--clr-accent);
-  border-radius: 6px;
+  border-radius: var(--radius-btn, 4px);
   opacity: 0;
   animation: ringPulse 2.8s ease-out 2.2s infinite;
   pointer-events: none;
