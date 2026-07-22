@@ -32,6 +32,24 @@
       overlay.appendChild(line);
     });
 
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'phi-grid__diagonals');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('preserveAspectRatio', 'none');
+
+    [[0, 0, 100, 100], [100, 0, 0, 100]].forEach(function (coords) {
+      var line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', coords[0]);
+      line.setAttribute('y1', coords[1]);
+      line.setAttribute('x2', coords[2]);
+      line.setAttribute('y2', coords[3]);
+      line.setAttribute('vector-effect', 'non-scaling-stroke');
+      svg.appendChild(line);
+    });
+
+    overlay.appendChild(svg);
+
     var toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'phi-grid-toggle';

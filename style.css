@@ -1208,6 +1208,18 @@ body.page-scroll {
 .phi-grid__line--h-38 { top: 38.2%; }
 .phi-grid__line--h-62 { top: 61.8%; }
 
+.phi-grid__diagonals {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.phi-grid__diagonals line {
+  stroke: rgba(255, 207, 92, 0.4);
+  stroke-width: 1px;
+}
+
 .phi-grid-toggle {
   position: fixed;
   top: 1.1rem;
