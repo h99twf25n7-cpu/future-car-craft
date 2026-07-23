@@ -25,8 +25,7 @@ button {
   --clr-dim:       rgba(var(--clr-white-rgb), 0.45);
   --clr-grid:      rgba(var(--clr-accent-rgb), 0.06);
 
-  --font-main: 'Helvetica Neue', 'Arial', sans-serif;
-  --font-display: var(--font-main);
+  --font-main: 'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --radius-card: 10px;
   --radius-chip: 999px;
   --border-w:    1.5px;
@@ -68,8 +67,7 @@ button {
   --clr-accent2-rgb: 123, 79, 255;
   --clr-white-rgb:   232, 240, 255;
 
-  --font-main:    'Helvetica Neue', 'Arial', sans-serif;
-  --font-display: 'Helvetica Neue', 'Arial', sans-serif;
+  --font-main:    'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --radius-card: 10px;
   --radius-chip: 999px;
   --border-w:    1.5px;
@@ -86,15 +84,14 @@ button {
   --clr-accent2-rgb: 255, 180, 67;
   --clr-white-rgb:   251, 233, 255;
 
-  --font-main:    'Century Gothic', 'Futura', 'Trebuchet MS', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
-  --font-display: 'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif;
+  --font-main:    'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --radius-card: 20px;
   --radius-chip: 999px;
   --border-w:    2px;
 }
 
 /* 03: Digital Green — terminal / matrix: flat CRT scanlines (no
-   perspective), monospace type, dashed panels. */
+   perspective), dashed panels. */
 :root[data-theme="matrix"] {
   --clr-bg:        #020a05;
   --clr-bg-mid:    #051f10;
@@ -105,8 +102,7 @@ button {
   --clr-accent2-rgb: 0, 255, 200;
   --clr-white-rgb:   232, 255, 240;
 
-  --font-main:    'Courier New', ui-monospace, 'SFMono-Regular', Menlo, monospace, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
-  --font-display: 'Courier New', ui-monospace, monospace;
+  --font-main:    'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --radius-card: 0px;
   --radius-chip: 2px;
   --border-w:    2px;
@@ -124,15 +120,14 @@ button {
   --clr-accent2-rgb: 255, 157, 61;
   --clr-white-rgb:   255, 240, 232;
 
-  --font-main:    'Arial Black', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-  --font-display: 'Arial Black', 'Arial', sans-serif;
+  --font-main:    'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --radius-card: 2px;
   --radius-chip: 2px;
   --border-w:    3px;
 }
 
 /* 05: Royal Gold — luxury glass: soft vignette instead of a grid,
-   serif display type, frosted glass panels, thin hairline borders. */
+   frosted glass panels, thin hairline borders. */
 :root[data-theme="royal"] {
   --clr-bg:        #0a0704;
   --clr-bg-mid:    #1c150a;
@@ -144,14 +139,12 @@ button {
   --clr-white-rgb:   255, 248, 232;
 
   --font-main:    'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-  --font-display: 'Georgia', 'Times New Roman', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
   --radius-card: 16px;
   --radius-chip: 999px;
   --border-w:    1px;
 }
 
-/* 06: Arctic Blue — frosted glacier: soft frost dots, glass panels,
-   airy sans display type. */
+/* 06: Arctic Blue — frosted glacier: soft frost dots, glass panels. */
 :root[data-theme="arctic"] {
   --clr-bg:        #020610;
   --clr-bg-mid:    #061527;
@@ -162,8 +155,7 @@ button {
   --clr-accent2-rgb: 178, 242, 255;
   --clr-white-rgb:   232, 248, 255;
 
-  --font-main:    'Segoe UI', 'Helvetica Neue', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-  --font-display: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-main:    'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --radius-card: 14px;
   --radius-chip: 999px;
   --border-w:    1px;
