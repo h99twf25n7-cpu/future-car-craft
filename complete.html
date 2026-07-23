@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
   <title>FUTURE CAR CRAFT — あなたの未来車が完成しました</title>
   <link rel="stylesheet" href="style.css" />
@@ -30,14 +30,12 @@
       <div class="summary-row">
         <span class="summary-row__label">形状</span>
         <span class="summary-row__value" id="rowShape">
-          <span class="summary-row__icon" aria-hidden="true">—</span>
           <span>未選択</span>
         </span>
       </div>
       <div class="summary-row" id="rowFuelWrap" hidden>
         <span class="summary-row__label">燃料タイプ</span>
         <span class="summary-row__value" id="rowFuel">
-          <span class="summary-row__icon" aria-hidden="true">—</span>
           <span>未選択</span>
         </span>
       </div>
@@ -94,16 +92,6 @@
   </footer>
 
   <script>
-    const SHAPE_ICONS = {
-      kei:     '🚗',
-      sedan:   '🚗',
-      suv:     '🚙',
-      sports:  '🏎️',
-      minivan: '🚐',
-      truck:   '🛻',
-      coupe:   '🚘',
-    };
-
     function readStorage(key) {
       try {
         return localStorage.getItem(key);

@@ -33,6 +33,23 @@ button {
   --border-w:    1.5px;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Type scale — every font-size on the site is one of these steps.
+     Ratio between adjacent steps is sqrt(phi) ≈ 1.272, so 4 steps
+     apart is exactly one golden ratio (phi ≈ 1.618) and 8 steps
+     apart is phi². Values are the "preferred/max" end of each
+     clamp(); the min end is always the step directly below, except
+     the hero title which spans fs-6 → fs-9 (a full phi² jump) for
+     a stronger, but still ratio-consistent, fluid range. */
+  --fs-00: 0.65rem;
+  --fs-0:  0.8rem;
+  --fs-1:  1.05rem;
+  --fs-2:  1.3rem;
+  --fs-3:  1.7rem;
+  --fs-4:  2.15rem;
+  --fs-5:  2.7rem;
+  --fs-6:  3.45rem;
+  --fs-9:  9rem;
 }
 
 /* ============================================================
@@ -242,7 +259,7 @@ html, body {
 
 /* Eyebrow label */
 .eyebrow {
-  font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+  font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   font-weight: 500;
   letter-spacing: 0.35em;
   color: var(--clr-accent);
@@ -263,7 +280,7 @@ html, body {
   gap: 0.35em;
   flex-wrap: wrap;
   justify-content: center;
-  font-size: clamp(3.2rem, 9vw, 9rem);
+  font-size: clamp(var(--fs-6), 9vw, var(--fs-9));
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -295,7 +312,7 @@ html, body {
 
 /* Subtitle */
 .subtitle {
-  font-size: clamp(0.8rem, 1.6vw, 1.05rem);
+  font-size: clamp(var(--fs-0), 1.6vw, var(--fs-1));
   font-weight: 300;
   letter-spacing: 0.12em;
   color: var(--clr-dim);
@@ -320,7 +337,7 @@ html, body {
   background: transparent;
   color: var(--clr-accent);
   text-decoration: none;
-  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  font-size: clamp(var(--fs-1), 2.2vw, var(--fs-2));
   font-weight: 700;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -390,7 +407,7 @@ html, body {
 
 /* ---------- Hint text -------------------------------------- */
 .hint {
-  font-size: clamp(0.65rem, 1.1vw, 0.78rem);
+  font-size: clamp(var(--fs-00), 1.1vw, var(--fs-0));
   letter-spacing: 0.15em;
   color: rgba(var(--clr-white-rgb), 0.25);
   margin-top: 2rem;
@@ -401,7 +418,7 @@ html, body {
 /* ---------- Footer dot indicator --------------------------- */
 .footer {
   position: fixed;
-  bottom: 2rem;
+  bottom: calc(2rem + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -461,7 +478,7 @@ html, body {
 }
 
 .step-eyebrow {
-  font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+  font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   font-weight: 500;
   letter-spacing: 0.35em;
   color: var(--clr-accent);
@@ -469,13 +486,13 @@ html, body {
 }
 
 .step-title {
-  font-size: clamp(1.5rem, 3.4vw, 2.4rem);
+  font-size: clamp(var(--fs-3), 3.4vw, var(--fs-4));
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
 .step-sub {
-  font-size: clamp(0.75rem, 1.4vw, 0.95rem);
+  font-size: clamp(var(--fs-0), 1.4vw, var(--fs-1));
   color: var(--clr-dim);
   letter-spacing: 0.06em;
 }
@@ -529,7 +546,7 @@ html, body {
 }
 
 .option-card__icon {
-  font-size: 2.6rem;
+  font-size: clamp(var(--fs-4), 4vw, var(--fs-5));
   line-height: 1;
   filter: grayscale(0.15);
 }
@@ -547,7 +564,7 @@ html, body {
 }
 
 .option-card__label {
-  font-size: 0.95rem;
+  font-size: clamp(var(--fs-0), 1.6vw, var(--fs-1));
   font-weight: 600;
   letter-spacing: 0.08em;
 }
@@ -561,7 +578,7 @@ html, body {
   border-radius: 50%;
   background: var(--clr-accent);
   color: var(--clr-bg);
-  font-size: 0.7rem;
+  font-size: var(--fs-00);
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -589,7 +606,7 @@ html, body {
   border-radius: 10px;
   background: rgba(var(--clr-accent-rgb), 0.03);
   color: var(--clr-white);
-  font-size: clamp(1rem, 1.6vw, 1.05rem);
+  font-size: clamp(var(--fs-0), 1.8vw, var(--fs-1));
   letter-spacing: 0.02em;
   text-align: center;
   transition:
@@ -615,7 +632,7 @@ html, body {
 }
 
 .prompt-hint {
-  font-size: 0.8rem;
+  font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   color: var(--clr-dim);
   letter-spacing: 0.04em;
   text-align: center;
@@ -649,7 +666,7 @@ html, body {
   border-radius: 999px;
   background: rgba(var(--clr-accent-rgb), 0.03);
   color: var(--clr-dim);
-  font-size: 0.8rem;
+  font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   letter-spacing: 0.04em;
   cursor: pointer;
   transition:
@@ -702,7 +719,7 @@ html, body {
   border: none;
   background: transparent;
   color: var(--clr-dim);
-  font-size: 0.75rem;
+  font-size: clamp(var(--fs-00), 1.1vw, var(--fs-0));
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: color 0.25s ease;
@@ -738,7 +755,7 @@ html, body {
 }
 
 .mix-row__label {
-  font-size: 0.75rem;
+  font-size: clamp(var(--fs-00), 1.1vw, var(--fs-0));
   color: var(--clr-dim);
   letter-spacing: 0.08em;
 }
@@ -760,7 +777,7 @@ html, body {
 }
 
 .ratio-row__label {
-  font-size: 0.75rem;
+  font-size: clamp(var(--fs-00), 1.1vw, var(--fs-0));
   color: var(--clr-dim);
   letter-spacing: 0.08em;
 }
@@ -781,7 +798,7 @@ html, body {
 }
 
 .ratio-item__label {
-  font-size: 0.76rem;
+  font-size: clamp(var(--fs-00), 1.1vw, var(--fs-0));
   color: var(--clr-white);
   letter-spacing: 0.02em;
   text-align: right;
@@ -796,7 +813,7 @@ html, body {
 }
 
 .ratio-item__value {
-  font-size: 0.8rem;
+  font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   color: var(--clr-accent);
   text-align: left;
 }
@@ -823,7 +840,7 @@ html, body {
   white-space: nowrap;
   color: var(--clr-dim);
   text-decoration: none;
-  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  font-size: clamp(var(--fs-0), 1.6vw, var(--fs-1));
   font-weight: 700;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -844,7 +861,7 @@ html, body {
   border-radius: 4px;
   background: transparent;
   color: var(--clr-accent);
-  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  font-size: clamp(var(--fs-0), 1.6vw, var(--fs-1));
   font-weight: 700;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -921,7 +938,7 @@ body.page-scroll {
 .summary-row[hidden] { display: none; }
 
 .summary-row__label {
-  font-size: 0.75rem;
+  font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   letter-spacing: 0.2em;
   color: var(--clr-dim);
   text-transform: uppercase;
@@ -931,12 +948,12 @@ body.page-scroll {
   display: flex;
   align-items: center;
   gap: 0.6em;
-  font-size: 1.05rem;
+  font-size: clamp(var(--fs-0), 1.6vw, var(--fs-1));
   font-weight: 600;
 }
 
 .summary-row__icon {
-  font-size: 1.3rem;
+  font-size: clamp(var(--fs-1), 2vw, var(--fs-2));
   line-height: 1;
 }
 
@@ -966,7 +983,7 @@ body.page-scroll {
 }
 
 .ai-image__password-label {
-  font-size: 0.8rem;
+  font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   color: var(--clr-dim);
   letter-spacing: 0.04em;
 }
@@ -977,7 +994,7 @@ body.page-scroll {
   border: 1.5px solid rgba(var(--clr-accent-rgb), 0.25);
   background: rgba(var(--clr-white-rgb), 0.04);
   color: var(--clr-white);
-  font-size: 0.85rem;
+  font-size: clamp(var(--fs-0), 1.3vw, var(--fs-1));
   letter-spacing: 0.05em;
 }
 
@@ -988,7 +1005,7 @@ body.page-scroll {
 
 .ai-image__status {
   min-height: 1.2em;
-  font-size: 0.8rem;
+  font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   color: var(--clr-dim);
   letter-spacing: 0.04em;
 }
@@ -1024,7 +1041,7 @@ body.page-scroll {
 .ai-image__progress-text {
   min-width: 2.6em;
   text-align: right;
-  font-size: 0.75rem;
+  font-size: clamp(var(--fs-00), 1.1vw, var(--fs-0));
   color: var(--clr-dim);
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
@@ -1071,14 +1088,70 @@ body.page-scroll {
   }
 }
 
+/* Landscape phones — short viewport height breaks the golden-ratio
+   %-based hero layout and lets step-page content hide the action
+   buttons off-screen, so both switch to a compact, scrollable layout. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html, body { overflow: auto; }
+
+  /* Hero: drop the 38.2% / 61.8% absolute positioning (it collapses
+     the gap between title and button when the viewport is this
+     short) in favor of simple flex centering. */
+  .hero {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    gap: 0.6rem;
+    padding: 1rem 0;
+  }
+  .title {
+    position: static;
+    transform: none;
+    font-size: clamp(var(--fs-3), 6vmin, var(--fs-6));
+  }
+  .subtitle {
+    margin-bottom: 0.8rem;
+  }
+  .cta {
+    position: static;
+    transform: none;
+  }
+  .btn-start {
+    min-width: 200px;
+    min-height: 48px;
+    padding: 0 2rem;
+    font-size: clamp(var(--fs-00), 2.2vmin, var(--fs-1));
+  }
+  .hint {
+    margin-top: 0.8rem;
+  }
+  .footer {
+    display: none;
+  }
+
+  /* Step pages: stop forcing a min-height of 100vh and tighten
+     spacing so back/next stay reachable without excess scrolling. */
+  .step-stage {
+    min-height: auto;
+    padding: 1.2rem 1.5rem 2rem;
+    gap: 1.2rem;
+  }
+  .step-header {
+    gap: 0.4rem;
+  }
+}
+
 /* ============================================================
    Theme Switcher — floating control injected by theme.js.
    Purely additive UI; does not alter existing layout/text.
    ============================================================ */
 .theme-switch {
   position: fixed;
-  top: 1.1rem;
-  left: 1.1rem;
+  top: calc(1.1rem + env(safe-area-inset-top));
+  left: calc(1.1rem + env(safe-area-inset-left));
   z-index: 200;
 }
 
@@ -1091,7 +1164,7 @@ body.page-scroll {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: var(--clr-accent);
-  font-size: 1.15rem;
+  font-size: clamp(var(--fs-1), 2vw, var(--fs-2));
   line-height: 1;
   display: flex;
   align-items: center;
@@ -1170,7 +1243,7 @@ body.page-scroll {
 }
 
 .theme-switch__label {
-  font-size: 0.72rem;
+  font-size: clamp(var(--fs-00), 1.1vw, var(--fs-0));
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
@@ -1233,8 +1306,8 @@ body.page-scroll {
 
 .phi-grid-toggle {
   position: fixed;
-  top: 1.1rem;
-  right: 1.1rem;
+  top: calc(1.1rem + env(safe-area-inset-top));
+  right: calc(1.1rem + env(safe-area-inset-right));
   z-index: 200;
   width: 42px;
   height: 42px;
@@ -1244,7 +1317,7 @@ body.page-scroll {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: rgba(var(--clr-white-rgb), 0.6);
-  font-size: 1.15rem;
+  font-size: clamp(var(--fs-1), 2vw, var(--fs-2));
   font-weight: 700;
   line-height: 1;
   display: flex;
