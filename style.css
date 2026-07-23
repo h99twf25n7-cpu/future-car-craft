@@ -299,11 +299,7 @@ html, body {
 }
 .title__word--car {
   animation: fadeUp 0.9s var(--ease-out-expo) 0.7s forwards;
-  /* Gradient fill on "CAR" */
-  background: linear-gradient(135deg, var(--clr-accent) 0%, var(--clr-accent2) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--clr-white);
 }
 .title__word--craft {
   animation: fadeUp 0.9s var(--ease-out-expo) 0.9s forwards;
