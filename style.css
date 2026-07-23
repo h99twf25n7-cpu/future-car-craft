@@ -224,7 +224,10 @@ html, body {
 /* ---------- Hero block ------------------------------------- */
 /* Title and CTA are placed independently on the golden-ratio
    points (38.2% / 61.8% of the viewport height) rather than as
-   one flex-centered group. */
+   one flex-centered group. The title's bottom edge sits on the
+   38.2% line and the button's top edge sits on the 61.8% line, so
+   the two lines bracket a deliberately empty band between them
+   instead of just centering content over each point. */
 .hero {
   position: absolute;
   inset: 0;
@@ -235,7 +238,7 @@ html, body {
   position: absolute;
   top: 61.8%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
