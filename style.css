@@ -277,7 +277,7 @@ html, body {
   transform: translate(-50%, -50%);
   width: 100%;
   display: flex;
-  gap: 0.35em;
+  gap: 0;
   flex-wrap: wrap;
   justify-content: center;
   font-size: clamp(var(--fs-6), 9vw, var(--fs-9));
@@ -1077,9 +1077,6 @@ body.page-scroll {
 @media (max-width: 600px) {
   html, body { overflow: auto; }
   .bg-grid { display: none; }
-  .title {
-    gap: 0.2em;
-  }
   .subtitle {
     margin-bottom: 2.8rem;
   }
