@@ -270,11 +270,16 @@ html, body {
 }
 
 /* Main title */
+/* translateY anchors the box's bottom edge to the 38.2% line, then
+   nudges down by 0.145em to cancel the font's descender space below
+   the baseline — since it's all caps, that puts the visual bottom of
+   the letters (not the empty box) on the line. Ratio holds regardless
+   of how many lines the title wraps to. */
 .title {
   position: absolute;
   top: 38.2%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, calc(-100% + 0.145em));
   width: 100%;
   display: flex;
   gap: 0;
