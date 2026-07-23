@@ -27,7 +27,6 @@ button {
 
   --font-main: 'Helvetica Neue', 'Arial', sans-serif;
   --font-display: var(--font-main);
-  --radius-btn:  4px;
   --radius-card: 10px;
   --radius-chip: 999px;
   --border-w:    1.5px;
@@ -58,7 +57,7 @@ button {
    ============================================================ */
 
 /* 01: Neon Cyan (default) — cyberpunk HUD: perspective grid, outline
-   buttons with a fill-sweep on hover, sharp-ish 4px corners. */
+   buttons with a fill-sweep on hover. */
 :root[data-theme="default"] {
   --clr-bg:        #050810;
   --clr-bg-mid:    #0b1120;
@@ -71,14 +70,12 @@ button {
 
   --font-main:    'Helvetica Neue', 'Arial', sans-serif;
   --font-display: 'Helvetica Neue', 'Arial', sans-serif;
-  --radius-btn:  4px;
   --radius-card: 10px;
   --radius-chip: 999px;
   --border-w:    1.5px;
 }
 
-/* 02: Synthwave Sunset — retro outrun: grid + CRT scanlines, pill
-   buttons filled solid with an accent gradient from the start. */
+/* 02: Synthwave Sunset — retro outrun: grid + CRT scanlines. */
 :root[data-theme="synthwave"] {
   --clr-bg:        #0d0512;
   --clr-bg-mid:    #1a0a24;
@@ -91,14 +88,13 @@ button {
 
   --font-main:    'Century Gothic', 'Futura', 'Trebuchet MS', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
   --font-display: 'Century Gothic', 'Futura', 'Trebuchet MS', sans-serif;
-  --radius-btn:  999px;
   --radius-card: 20px;
   --radius-chip: 999px;
   --border-w:    2px;
 }
 
 /* 03: Digital Green — terminal / matrix: flat CRT scanlines (no
-   perspective), monospace type, hard 0px corners, dashed panels. */
+   perspective), monospace type, dashed panels. */
 :root[data-theme="matrix"] {
   --clr-bg:        #020a05;
   --clr-bg-mid:    #051f10;
@@ -111,14 +107,13 @@ button {
 
   --font-main:    'Courier New', ui-monospace, 'SFMono-Regular', Menlo, monospace, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
   --font-display: 'Courier New', ui-monospace, monospace;
-  --radius-btn:  0px;
   --radius-card: 0px;
   --radius-chip: 2px;
   --border-w:    2px;
 }
 
 /* 04: Inferno Red — industrial hazard: diagonal stripe backdrop,
-   solid filled buttons, thick borders, near-square corners. */
+   thick borders. */
 :root[data-theme="inferno"] {
   --clr-bg:        #0d0302;
   --clr-bg-mid:    #220805;
@@ -131,7 +126,6 @@ button {
 
   --font-main:    'Arial Black', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --font-display: 'Arial Black', 'Arial', sans-serif;
-  --radius-btn:  2px;
   --radius-card: 2px;
   --radius-chip: 2px;
   --border-w:    3px;
@@ -151,14 +145,13 @@ button {
 
   --font-main:    'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --font-display: 'Georgia', 'Times New Roman', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
-  --radius-btn:  999px;
   --radius-card: 16px;
   --radius-chip: 999px;
   --border-w:    1px;
 }
 
 /* 06: Arctic Blue — frosted glacier: soft frost dots, glass panels,
-   light rounded corners, airy sans display type. */
+   airy sans display type. */
 :root[data-theme="arctic"] {
   --clr-bg:        #020610;
   --clr-bg-mid:    #061527;
@@ -171,7 +164,6 @@ button {
 
   --font-main:    'Segoe UI', 'Helvetica Neue', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --font-display: 'Segoe UI', 'Helvetica Neue', sans-serif;
-  --radius-btn:  14px;
   --radius-card: 14px;
   --radius-chip: 999px;
   --border-w:    1px;
@@ -334,7 +326,7 @@ html, body {
   border-style: solid;
   border-width: var(--border-w, 1.5px);
   border-color: var(--clr-accent);
-  border-radius: var(--radius-btn, 4px);
+  border-radius: 4px;
   background: transparent;
   color: var(--clr-accent);
   text-decoration: none;
@@ -395,7 +387,7 @@ html, body {
   position: absolute;
   inset: -8px;
   border: 1px solid var(--clr-accent);
-  border-radius: var(--radius-btn, 4px);
+  border-radius: 4px;
   opacity: 0;
   animation: ringPulse 2.8s ease-out 2.2s infinite;
   pointer-events: none;
