@@ -314,11 +314,17 @@ html, body {
 }
 
 /* ---------- START button ----------------------------------- */
+/* Width spans exactly the gap between the 38.2% and 61.8% vertical
+   golden-ratio lines (61.8 - 38.2 = 23.6vw), so the frame's left and
+   right edges land on those lines rather than sizing to content.
+   min-width is a floor for narrow viewports where 23.6vw would
+   otherwise squeeze the label. */
 .btn-start {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 23.6vw;
   min-width: 260px;
   min-height: 80px;
   padding: 0 3rem;
