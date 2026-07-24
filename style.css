@@ -225,7 +225,7 @@ html, body {
 /* Title and CTA are placed independently on the golden-ratio
    points (38.2% / 61.8% of the viewport height) rather than as
    one flex-centered group. The title's bottom edge sits on the
-   38.2% line and the button's top edge sits on the 61.8% line, so
+   38.2% line and the button's bottom edge sits on the 61.8% line, so
    the two lines bracket a deliberately empty band between them
    instead of just centering content over each point. */
 .hero {
@@ -234,6 +234,11 @@ html, body {
   text-align: center;
 }
 
+/* .cta's own top edge marks the 61.8% line; btn-start is pulled out
+   of flow and anchored so its bottom border sits exactly on that
+   edge (bottom: 100% of the containing block == the containing
+   block's top), while .hint stays in normal flow so its margin-top
+   still reads as the gap below the line. */
 .cta {
   position: absolute;
   top: 61.8%;
@@ -320,7 +325,9 @@ html, body {
    min-width is a floor for narrow viewports where 23.6vw would
    otherwise squeeze the label. */
 .btn-start {
-  position: relative;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -347,7 +354,8 @@ html, body {
     transform 0.25s var(--ease-out-expo),
     box-shadow 0.35s ease;
   opacity: 0;
-  animation: fadeUp 0.8s var(--ease-out-expo) 1.4s forwards;
+  transform: translateX(-50%);
+  animation: fadeUpCenterX 0.8s var(--ease-out-expo) 1.4s forwards;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -372,13 +380,13 @@ html, body {
 .btn-start:focus-visible {
   color: var(--clr-bg);
   border-color: var(--clr-accent);
-  transform: scale(1.04);
+  transform: translateX(-50%) scale(1.04);
   box-shadow: 0 0 40px rgba(var(--clr-accent-rgb), 0.35);
   outline: none;
 }
 
 .btn-start:active {
-  transform: scale(0.97);
+  transform: translateX(-50%) scale(0.97);
 }
 
 .btn-start__label {
@@ -443,6 +451,17 @@ html, body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Same slide-up fade as fadeUp, but keeps the element's horizontal
+   centering transform (translateX(-50%)) intact through the
+   animation instead of being clobbered by a plain translateY. Used
+   by .btn-start, which is absolutely positioned via left: 50%. */
+@keyframes fadeUpCenterX {
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -1115,10 +1134,22 @@ body.page-scroll {
     transform: none;
   }
   .btn-start {
+    position: static;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    animation: fadeUp 0.8s var(--ease-out-expo) 1.4s forwards;
     min-width: 200px;
     min-height: 48px;
     padding: 0 2rem;
     font-size: clamp(var(--fs-00), 2.2vmin, var(--fs-1));
+  }
+  .btn-start:hover,
+  .btn-start:focus-visible {
+    transform: scale(1.04);
+  }
+  .btn-start:active {
+    transform: scale(0.97);
   }
   .hint {
     margin-top: 0.8rem;
