@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>FUTURE CAR CRAFT — 背景を選択</title>
+  <title>FUTURE CAR CRAFT — アートスタイルを選択</title>
   <link rel="stylesheet" href="style.css" />
   <script src="theme.js"></script>
   <script src="phi-grid.js"></script>
@@ -17,22 +17,22 @@
 
   <main class="step-stage">
     <div class="step-header">
-      <p class="step-eyebrow">STEP 4 / 05</p>
-      <h1 class="step-title">背景を入力してください</h1>
-      <p class="step-sub">車が置かれるシーンを自由に文字で入力すると、生成される画像に反映されます（候補は1つだけ選べます）</p>
+      <p class="step-eyebrow">STEP 5 / 05</p>
+      <h1 class="step-title">アートスタイルを入力してください</h1>
+      <p class="step-sub">完成イメージの画風を自由に文字で入力すると、生成される画像に反映されます（候補は1つだけ選べます）</p>
     </div>
 
     <div class="prompt-box">
       <input
         type="text"
-        id="backgroundPrompt"
+        id="stylePrompt"
         class="prompt-input"
-        placeholder="例：都市の夜景、砂漠、宇宙..."
+        placeholder="例：油絵風、鉛筆画、サイバーパンク..."
         maxlength="80"
         autocomplete="off"
-        aria-label="背景"
+        aria-label="アートスタイル"
       />
-      <p class="prompt-hint">未入力の場合はスタジオ背景で生成されます</p>
+      <p class="prompt-hint">未入力の場合は写実的な写真スタイルで生成されます</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
@@ -46,9 +46,9 @@
     </div>
 
     <div class="step-actions">
-      <a href="step3.html" class="btn-back"><span aria-hidden="true">←</span><span>BACK</span></a>
+      <a href="step4.html" class="btn-back"><span aria-hidden="true">←</span><span>BACK</span></a>
       <button type="button" class="btn-next" id="nextBtn">
-        <span>NEXT</span>
+        <span>COMPLETE</span>
         <span aria-hidden="true">→</span>
       </button>
     </div>
@@ -58,26 +58,26 @@
     <span class="footer__dot"></span>
     <span class="footer__dot"></span>
     <span class="footer__dot"></span>
-    <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot"></span>
+    <span class="footer__dot footer__dot--active"></span>
   </footer>
 
   <script>
-    const promptInput = document.getElementById('backgroundPrompt');
+    const promptInput = document.getElementById('stylePrompt');
     const nextBtn = document.getElementById('nextBtn');
     const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
 
-    // 現実的なロケーション＋近未来コンセプトに合う背景を混ぜたプール。一部の項目は
+    // 現実的な描写スタイル＋近未来コンセプトに合う画風を混ぜたプール。一部の項目は
     // さらに子項目を持ち、クリックすると候補リストがその子項目に切り替わる
     // 2段階構造になっている。
     const SUGGESTION_POOL = [
-      '都市の夜景', 'サーキット', '砂漠', '山道',
-      { label: '海辺', children: ['海岸線の道路', '海沿いのハイウェイ', 'ビーチ'] },
-      '雪景色', '森林', '夕焼けの草原',
-      { label: '近未来都市', children: ['サイバーパンク街', 'ネオン街', 'スカイウェイ'] },
-      '宇宙', 'スタジオ（無地背景）',
+      '写真（フォトリアル）', '油絵', '水彩画', '鉛筆画（スケッチ）',
+      { label: 'アニメ風', children: ['セル画風', '劇画風', 'ジブリ風'] },
+      { label: '3Dレンダー', children: ['フォトリアルCG', 'トゥーンレンダー', 'ワイヤーフレーム'] },
+      'ピクセルアート', 'サイバーパンク風', 'ネオン', 'ミニマル',
+      'ステンドグラス', 'ブループリント図面風', 'クレイアート', 'コンセプトアート',
     ];
     const SUGGESTION_COUNT = 6;
     let currentPicks = [];
@@ -104,7 +104,7 @@
       currentPicks = pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT);
     }
 
-    // 選択中の背景は、常に見えるように候補リストの上に固定表示する。
+    // 選択中のスタイルは、常に見えるように候補リストの上に固定表示する。
     function renderSelected() {
       const value = promptInput.value.trim();
       selectedList.innerHTML = '';
@@ -118,7 +118,7 @@
       selectedList.appendChild(chip);
     }
 
-    // 選択中の背景は並び替えず、その場を空白の穴にして位置を保持する。
+    // 選択中のスタイルは並び替えず、その場を空白の穴にして位置を保持する。
     // 子項目を持つ候補は、そこから2段階目の候補一覧に切り替えられる。
     function renderSuggestions() {
       const value = promptInput.value.trim();
@@ -152,15 +152,15 @@
       renderSuggestions();
     }
 
-    function saveBackground() {
+    function saveStyle() {
       try {
-        localStorage.setItem('fcc:selectedBackground', promptInput.value.trim());
+        localStorage.setItem('fcc:selectedStyle', promptInput.value.trim());
       } catch (e) {}
     }
 
     promptInput.addEventListener('input', () => {
       refreshSuggestionUI();
-      saveBackground();
+      saveStyle();
     });
 
     promptInput.addEventListener('keydown', (e) => {
@@ -169,7 +169,7 @@
       }
     });
 
-    // 背景は複数選択不可。候補チップをクリックすると既存の選択を置き換える単一選択として動作する。
+    // アートスタイルは複数選択不可。候補チップをクリックすると既存の選択を置き換える単一選択として動作する。
     suggestionList.addEventListener('click', (e) => {
       if (e.target.closest('[data-action="back"]')) {
         activeParent = null;
@@ -205,7 +205,7 @@
     });
 
     try {
-      const saved = localStorage.getItem('fcc:selectedBackground');
+      const saved = localStorage.getItem('fcc:selectedStyle');
       if (saved) {
         promptInput.value = saved;
       }
@@ -215,8 +215,8 @@
     refreshSuggestionUI();
 
     nextBtn.addEventListener('click', () => {
-      saveBackground();
-      window.location.href = 'step5.html';
+      saveStyle();
+      window.location.href = 'complete.html';
     });
   </script>
 

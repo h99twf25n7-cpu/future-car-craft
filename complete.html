@@ -30,12 +30,14 @@
       <div class="summary-row">
         <span class="summary-row__label">形状</span>
         <span class="summary-row__value" id="rowShape">
+          <span class="summary-row__icon" aria-hidden="true">—</span>
           <span>未選択</span>
         </span>
       </div>
       <div class="summary-row" id="rowFuelWrap" hidden>
         <span class="summary-row__label">燃料タイプ</span>
         <span class="summary-row__value" id="rowFuel">
+          <span class="summary-row__icon" aria-hidden="true">—</span>
           <span>未選択</span>
         </span>
       </div>
@@ -43,6 +45,13 @@
         <span class="summary-row__label">ボディカラー</span>
         <span class="summary-row__value" id="rowColor">
           <span class="summary-row__swatch" aria-hidden="true"></span>
+          <span>未選択</span>
+        </span>
+      </div>
+      <div class="summary-row" id="rowBackgroundWrap" hidden>
+        <span class="summary-row__label">背景</span>
+        <span class="summary-row__value" id="rowBackground">
+          <span class="summary-row__icon" aria-hidden="true">🏞️</span>
           <span>未選択</span>
         </span>
       </div>
@@ -76,7 +85,7 @@
     </div>
 
     <div class="step-actions">
-      <a href="step4.html" class="btn-back"><span aria-hidden="true">←</span><span>BACK</span></a>
+      <a href="step5.html" class="btn-back"><span aria-hidden="true">←</span><span>BACK</span></a>
       <button type="button" class="btn-next" id="restartBtn">
         <span>RESTART</span>
         <span aria-hidden="true">→</span>
@@ -89,9 +98,20 @@
     <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot footer__dot--active"></span>
+    <span class="footer__dot footer__dot--active"></span>
   </footer>
 
   <script>
+    const SHAPE_ICONS = {
+      kei:     '🚗',
+      sedan:   '🚗',
+      suv:     '🚙',
+      sports:  '🏎️',
+      minivan: '🚐',
+      truck:   '🛻',
+      coupe:   '🚘',
+    };
+
     function readStorage(key) {
       try {
         return localStorage.getItem(key);
@@ -110,6 +130,7 @@
     try {
       colorHexes = JSON.parse(readStorage('fcc:selectedColorHexes') || '[]');
     } catch (e) {}
+    const backgroundLabel = readStorage('fcc:selectedBackground');
     const styleLabel = readStorage('fcc:selectedStyle');
 
     const carPreview = document.getElementById('carPreview');
@@ -146,6 +167,11 @@
       row.querySelector('span:last-child').textContent = colorLabel;
     }
 
+    if (backgroundLabel) {
+      document.getElementById('rowBackgroundWrap').hidden = false;
+      document.getElementById('rowBackground').querySelector('span:last-child').textContent = backgroundLabel;
+    }
+
     if (styleLabel) {
       document.getElementById('rowStyleWrap').hidden = false;
       document.getElementById('rowStyle').querySelector('span:last-child').textContent = styleLabel;
@@ -166,6 +192,9 @@
 
     const FUEL_PROMPT_MAP = {};
     const FUEL_KEYS = Object.keys(FUEL_PROMPT_MAP).sort((a, b) => b.length - a.length);
+
+    const BACKGROUND_PROMPT_MAP = {};
+    const BACKGROUND_KEYS = Object.keys(BACKGROUND_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
     const STYLE_PROMPT_MAP = {};
     const STYLE_KEYS = Object.keys(STYLE_PROMPT_MAP).sort((a, b) => b.length - a.length);
@@ -248,6 +277,7 @@
         translateShapeWithRatio(shapeLabel),
         translateText(fuelLabel, FUEL_PROMPT_MAP, FUEL_KEYS, ' and '),
         buildColorClause(),
+        translateText(backgroundLabel, BACKGROUND_PROMPT_MAP, BACKGROUND_KEYS, ', '),
         translateText(styleLabel, STYLE_PROMPT_MAP, STYLE_KEYS, ', '),
       ].filter(Boolean);
       return parts.join(', ') || 'a vehicle';
@@ -358,6 +388,7 @@
         localStorage.removeItem('fcc:selectedColorHexes');
         localStorage.removeItem('fcc:selectedColorMix');
         localStorage.removeItem('fcc:selectedColorRatios');
+        localStorage.removeItem('fcc:selectedBackground');
         localStorage.removeItem('fcc:selectedStyle');
       } catch (e) {}
       window.location.href = 'index.html';
