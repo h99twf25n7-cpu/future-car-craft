@@ -40,14 +40,16 @@
 
     var mainDiagonals = [[0, 0, 100, 100], [100, 0, 0, 100]];
 
-    // The v-38/v-62 and h-38/h-62 guides carve four golden-ratio
-    // corner cells (each 38.2% square) out of the frame; cross each
-    // one with its own pair of corner-to-corner diagonals.
-    var cornerDiagonals = [];
-    [[0, 38.2], [61.8, 100]].forEach(function (xRange) {
-      [[0, 38.2], [61.8, 100]].forEach(function (yRange) {
-        cornerDiagonals.push([xRange[0], yRange[0], xRange[1], yRange[1]]);
-        cornerDiagonals.push([xRange[1], yRange[0], xRange[0], yRange[1]]);
+    // The v-38/v-62 and h-38/h-62 guides carve the frame into a 3x3
+    // grid of golden-ratio cells (four corners, four edges, one
+    // center); cross every one of the nine with its own pair of
+    // corner-to-corner diagonals.
+    var ranges = [[0, 38.2], [38.2, 61.8], [61.8, 100]];
+    var cellDiagonals = [];
+    ranges.forEach(function (xRange) {
+      ranges.forEach(function (yRange) {
+        cellDiagonals.push([xRange[0], yRange[0], xRange[1], yRange[1]]);
+        cellDiagonals.push([xRange[1], yRange[0], xRange[0], yRange[1]]);
       });
     });
 
@@ -61,7 +63,7 @@
       svg.appendChild(line);
     });
 
-    cornerDiagonals.forEach(function (coords) {
+    cellDiagonals.forEach(function (coords) {
       var line = document.createElementNS(svgNS, 'line');
       line.setAttribute('x1', coords[0]);
       line.setAttribute('y1', coords[1]);

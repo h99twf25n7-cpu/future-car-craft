@@ -323,16 +323,23 @@ html, body {
    golden-ratio lines (61.8 - 38.2 = 23.6vw), so the frame's left and
    right edges land on those lines rather than sizing to content.
    min-width is a floor for narrow viewports where 23.6vw would
-   otherwise squeeze the label. */
+   otherwise squeeze the label.
+   Height mirrors this on the vertical axis: .cta's own top edge
+   marks the 61.8% horizontal guide, so top: -23.6vh pulls the
+   button's top edge up to the 38.2% guide (61.8 - 23.6 = 38.2), and
+   height: 23.6vh brings its bottom edge back down to .cta's top —
+   the 61.8% line — spanning exactly the gap between both guides.
+   min-height is a floor for short viewports. */
 .btn-start {
   position: absolute;
-  bottom: 100%;
+  top: -23.6vh;
   left: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 23.6vw;
   min-width: 260px;
+  height: 23.6vh;
   min-height: 80px;
   padding: 0 3rem;
   border-style: solid;
@@ -1144,11 +1151,13 @@ body.page-scroll {
   }
   .btn-start {
     position: static;
-    bottom: auto;
+    top: auto;
     left: auto;
     transform: none;
     animation: fadeUp 0.8s var(--ease-out-expo) 1.4s forwards;
+    width: auto;
     min-width: 200px;
+    height: auto;
     min-height: 48px;
     padding: 0 2rem;
     font-size: clamp(var(--fs-00), 2.2vmin, var(--fs-1));
