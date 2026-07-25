@@ -484,7 +484,16 @@ html, body {
   gap: 2.6rem;
 }
 
+/* Positioned like the hero's .title: pulled out of flow and anchored
+   so the header's bottom edge (== .step-title's bottom edge, the
+   last item in this column) sits exactly on the 38.2% golden-ratio
+   line, matching phi-grid's h-38 guide. */
 .step-header {
+  position: absolute;
+  top: 38.2%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1166,6 +1175,9 @@ body.page-scroll {
     gap: 1.2rem;
   }
   .step-header {
+    position: static;
+    transform: none;
+    width: auto;
     gap: 0.4rem;
   }
 }
