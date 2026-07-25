@@ -1342,6 +1342,10 @@ body.page-scroll {
   stroke-width: 1px;
 }
 
+.phi-grid__diagonals line.phi-grid__diagonals-corner {
+  stroke: rgba(255, 207, 92, 0.28);
+}
+
 .phi-grid-toggle {
   position: fixed;
   top: calc(1.1rem + env(safe-area-inset-top));
