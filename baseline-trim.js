@@ -3,15 +3,20 @@
 
   // Centers the hero title's *visual* glyph height (cap-top to
   // baseline ink, not the font's full ascent/descent box) on the
-  // 38.2% golden-ratio line. Rather than deriving the baseline's
-  // position from font metrics (canvas fontBoundingBoxAscent/Descent
-  // — support for that pair is spottier across engines than the rest
-  // of this file assumed), this measures the real on-page baseline
-  // with a zero-size, vertical-align:baseline marker, then corrects
-  // the title's translateY by exactly the measured gap. That makes
-  // the result correct regardless of how a given engine lays out the
-  // line box internally.
-
+  // 38.2% golden-ratio line, using a detached, unanimated clone of
+  // .title to measure the real on-page baseline:
+  //   - .title is a flex container, so vertical-align has no effect
+  //     on a marker appended directly to it (flex items ignore it —
+  //     they align via align-items, not inline baseline rules); the
+  //     marker instead goes inside a word span's own inline
+  //     formatting context, where vertical-align works normally.
+  //   - each word span carries a fade-in animation (opacity 0 →1,
+  //     translateY(40px) → 0) that's typically still mid-flight at
+  //     load time, and getBoundingClientRect reflects that
+  //     in-progress transform — which would corrupt the reading if
+  //     measured on the live element. A clone with the animation and
+  //     .title's own transform neutralized avoids that, and also
+  //     avoids the title visibly jumping once the animation ends.
   function measureGlyphCenterFromBaselinePx(titleEl, fontSizePx) {
     var cs = getComputedStyle(titleEl);
     var probeSize = 200;
@@ -32,14 +37,6 @@
     return ((ascent - descent) / 2) * (fontSizePx / probeSize);
   }
 
-  function parseTranslateYPx(transformValue) {
-    if (!transformValue || transformValue === 'none') return 0;
-    var match = /matrix\(([^)]+)\)/.exec(transformValue);
-    if (!match) return 0;
-    var parts = match[1].split(',');
-    return parts.length === 6 ? parseFloat(parts[5]) : 0;
-  }
-
   function run() {
     var heroEl = document.querySelector('.hero');
     var titleEl = document.querySelector('.title');
@@ -49,22 +46,35 @@
     var glyphCenterFromBaselinePx = measureGlyphCenterFromBaselinePx(titleEl, fontSizePx);
     if (glyphCenterFromBaselinePx === null) return; // unsupported browser — CSS keeps the -0.49em fallback
 
+    // The clone keeps .title's class, so it keeps .title's own
+    // `top: 38.2%` positioning — its box top *is* the 38.2% line, as
+    // the browser itself computes it — but its transform is
+    // overridden to none, dropping the translateY this whole
+    // function exists to solve for.
+    var clone = titleEl.cloneNode(true);
+    clone.style.transform = 'none';
+    clone.style.visibility = 'hidden';
+    clone.style.pointerEvents = 'none';
+
+    var cloneWords = clone.querySelectorAll('.title__word');
+    for (var i = 0; i < cloneWords.length; i++) {
+      cloneWords[i].style.animation = 'none';
+      cloneWords[i].style.opacity = '1';
+      cloneWords[i].style.transform = 'none';
+    }
+
+    var lastCloneWord = cloneWords[cloneWords.length - 1] || clone;
     var marker = document.createElement('span');
     marker.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;';
-    titleEl.appendChild(marker);
+    lastCloneWord.appendChild(marker);
 
-    var heroRect = heroEl.getBoundingClientRect();
+    heroEl.appendChild(clone);
+    var lineY = clone.getBoundingClientRect().top;
     var baselineY = marker.getBoundingClientRect().top;
-    var currentTranslateYPx = parseTranslateYPx(getComputedStyle(titleEl).transform);
+    heroEl.removeChild(clone);
 
-    titleEl.removeChild(marker);
-
-    var currentGlyphCenterY = baselineY - glyphCenterFromBaselinePx;
-    var targetY = heroRect.top + heroRect.height * 0.382;
-    var deltaPx = targetY - currentGlyphCenterY;
-
-    var newTranslateYPx = currentTranslateYPx + deltaPx;
-    titleEl.style.setProperty('--title-center-offset', (newTranslateYPx / fontSizePx) + 'em');
+    var requiredTranslateYPx = lineY - baselineY + glyphCenterFromBaselinePx;
+    titleEl.style.setProperty('--title-center-offset', (requiredTranslateYPx / fontSizePx) + 'em');
   }
 
   // Centers the START button (and its already flex-centered label)
