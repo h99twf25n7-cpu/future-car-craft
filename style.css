@@ -262,20 +262,18 @@ html, body {
 }
 
 /* Main title */
-/* translateY anchors the box's bottom edge to the 38.2% line, then
-   nudges down to cancel the font's descender space below the baseline
-   — since it's all caps, that puts the visual bottom of the letters
-   (the baseline), not the empty line-box, exactly on the line. Ratio
-   holds regardless of how many lines the title wraps to.
-   --title-baseline-offset is set precisely per the *actual* rendered
-   font by baseline-trim.js (font metrics vary across the fallback
-   stack/OS, so a single hardcoded em value can't be exact for all of
-   them); 0.145em is only the pre-JS/no-JS fallback. */
+/* translateY centers the *visual glyph height* (cap-top to baseline,
+   since the title is all caps) on the 38.2% line, rather than
+   anchoring the box's bottom edge to it. --title-center-offset is
+   set precisely per the *actual* rendered font by baseline-trim.js
+   (font metrics vary across the fallback stack/OS, so a single
+   hardcoded em value can't be exact for all of them); -0.49em is
+   only the pre-JS/no-JS fallback. */
 .title {
   position: absolute;
   top: 38.2%;
   left: 50%;
-  transform: translate(-50%, calc(-100% + var(--title-baseline-offset, 0.145em)));
+  transform: translate(-50%, var(--title-center-offset, -0.49em));
   width: 100%;
   display: flex;
   gap: 0;
