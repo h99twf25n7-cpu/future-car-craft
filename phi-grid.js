@@ -43,13 +43,20 @@
     // The v-38/v-62 and h-38/h-62 guides carve the frame into a 3x3
     // grid of golden-ratio cells (four corners, four edges, one
     // center); cross every one of the nine with its own pair of
-    // corner-to-corner diagonals.
+    // corner-to-corner diagonals, plus a centered vertical/horizontal
+    // cross.
     var ranges = [[0, 38.2], [38.2, 61.8], [61.8, 100]];
     var cellDiagonals = [];
+    var cellCrosses = [];
     ranges.forEach(function (xRange) {
       ranges.forEach(function (yRange) {
         cellDiagonals.push([xRange[0], yRange[0], xRange[1], yRange[1]]);
         cellDiagonals.push([xRange[1], yRange[0], xRange[0], yRange[1]]);
+
+        var xMid = (xRange[0] + xRange[1]) / 2;
+        var yMid = (yRange[0] + yRange[1]) / 2;
+        cellCrosses.push([xMid, yRange[0], xMid, yRange[1]]);
+        cellCrosses.push([xRange[0], yMid, xRange[1], yMid]);
       });
     });
 
@@ -71,6 +78,17 @@
       line.setAttribute('y2', coords[3]);
       line.setAttribute('vector-effect', 'non-scaling-stroke');
       line.setAttribute('class', 'phi-grid__diagonals-corner');
+      svg.appendChild(line);
+    });
+
+    cellCrosses.forEach(function (coords) {
+      var line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', coords[0]);
+      line.setAttribute('y1', coords[1]);
+      line.setAttribute('x2', coords[2]);
+      line.setAttribute('y2', coords[3]);
+      line.setAttribute('vector-effect', 'non-scaling-stroke');
+      line.setAttribute('class', 'phi-grid__diagonals-cross');
       svg.appendChild(line);
     });
 
