@@ -1,17 +1,18 @@
 (function () {
   'use strict';
 
-  // Measures the *actual* rendered font's metrics (canvas
-  // TextMetrics) and turns them into an exact em offset for
-  // --title-center-offset in style.css, replacing the hardcoded
-  // fallback guess. Necessary because .title's font-family is a
-  // fallback stack (Helvetica Neue / Arial / Hiragino Sans / Noto
-  // Sans JP) and each has different ascent/descent/cap-height, so no
-  // single constant centers the glyphs on the 38.2% guide on every
-  // OS. Measured at a large probe size for precision; the resulting
-  // offset is font-size independent, so it's applied as an em value
-  // and needs no recomputation on resize.
-  function computeCenterOffsetEm(titleEl) {
+  // Centers the hero title's *visual* glyph height (cap-top to
+  // baseline ink, not the font's full ascent/descent box) on the
+  // 38.2% golden-ratio line. Rather than deriving the baseline's
+  // position from font metrics (canvas fontBoundingBoxAscent/Descent
+  // — support for that pair is spottier across engines than the rest
+  // of this file assumed), this measures the real on-page baseline
+  // with a zero-size, vertical-align:baseline marker, then corrects
+  // the title's translateY by exactly the measured gap. That makes
+  // the result correct regardless of how a given engine lays out the
+  // line box internally.
+
+  function measureGlyphCenterFromBaselinePx(titleEl, fontSizePx) {
     var cs = getComputedStyle(titleEl);
     var probeSize = 200;
     var canvas = document.createElement('canvas');
@@ -19,48 +20,87 @@
     if (!ctx) return null;
 
     ctx.font = [cs.fontStyle, cs.fontWeight, probeSize + 'px', cs.fontFamily].join(' ');
-
-    // Font-wide ascent/descent locate the baseline within the line
-    // box (mirrors the browser's own line-box layout: half the
-    // leading, plus the font's ascent).
-    var boxMetrics = ctx.measureText('');
-    var ascent = boxMetrics.fontBoundingBoxAscent;
-    var descent = boxMetrics.fontBoundingBoxDescent;
+    var text = (titleEl.textContent || '').replace(/\s+/g, ' ').trim();
+    var metrics = ctx.measureText(text);
+    var ascent = metrics.actualBoundingBoxAscent;
+    var descent = metrics.actualBoundingBoxDescent;
     if (typeof ascent !== 'number' || typeof descent !== 'number') return null;
 
-    // The *rendered text's* own glyph bounds (tight to the caps,
-    // ignoring the font's full ascent/descent reserved for
-    // accents/descenders the all-caps title never uses) give the
-    // true visual top/bottom to center between.
-    var text = titleEl.textContent || '';
-    var glyphMetrics = ctx.measureText(text);
-    var glyphAscent = glyphMetrics.actualBoundingBoxAscent;
-    var glyphDescent = glyphMetrics.actualBoundingBoxDescent;
-    if (typeof glyphAscent !== 'number' || typeof glyphDescent !== 'number') return null;
+    // Ink center relative to the baseline (positive = above it), in
+    // px at the *actual* rendered font-size — the canvas probe is a
+    // large fixed size for precision, then scaled back down.
+    return ((ascent - descent) / 2) * (fontSizePx / probeSize);
+  }
 
-    var baselineFromTop = (probeSize + ascent - descent) / 2;
-    var glyphCenterFromBaseline = (glyphAscent - glyphDescent) / 2;
-    var centerFromTop = baselineFromTop - glyphCenterFromBaseline;
-
-    return -centerFromTop / probeSize;
+  function parseTranslateYPx(transformValue) {
+    if (!transformValue || transformValue === 'none') return 0;
+    var match = /matrix\(([^)]+)\)/.exec(transformValue);
+    if (!match) return 0;
+    var parts = match[1].split(',');
+    return parts.length === 6 ? parseFloat(parts[5]) : 0;
   }
 
   function run() {
+    var heroEl = document.querySelector('.hero');
     var titleEl = document.querySelector('.title');
-    if (!titleEl) return;
+    if (!heroEl || !titleEl) return;
 
-    var offset = computeCenterOffsetEm(titleEl);
-    if (offset === null) return; // unsupported browser — CSS keeps the -0.49em fallback
+    var fontSizePx = parseFloat(getComputedStyle(titleEl).fontSize);
+    var glyphCenterFromBaselinePx = measureGlyphCenterFromBaselinePx(titleEl, fontSizePx);
+    if (glyphCenterFromBaselinePx === null) return; // unsupported browser — CSS keeps the -0.49em fallback
 
-    titleEl.style.setProperty('--title-center-offset', offset + 'em');
+    var marker = document.createElement('span');
+    marker.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;';
+    titleEl.appendChild(marker);
+
+    var heroRect = heroEl.getBoundingClientRect();
+    var baselineY = marker.getBoundingClientRect().top;
+    var currentTranslateYPx = parseTranslateYPx(getComputedStyle(titleEl).transform);
+
+    titleEl.removeChild(marker);
+
+    var currentGlyphCenterY = baselineY - glyphCenterFromBaselinePx;
+    var targetY = heroRect.top + heroRect.height * 0.382;
+    var deltaPx = targetY - currentGlyphCenterY;
+
+    var newTranslateYPx = currentTranslateYPx + deltaPx;
+    titleEl.style.setProperty('--title-center-offset', (newTranslateYPx / fontSizePx) + 'em');
+  }
+
+  // Centers the START button (and its already flex-centered label)
+  // on the 61.8% golden-ratio line, instead of just its top edge.
+  // .cta stays at top:61.8% and .btn-start stays its first in-flow
+  // child (so .hint below is unaffected), and .cta itself is nudged
+  // up by half of the button's real rendered height — that height
+  // depends on responsive font-size/padding/the min-height floor, so
+  // it's measured live rather than assumed, and re-measured on
+  // resize since it isn't a simple proportional (em) relationship.
+  function runCtaCenter() {
+    var ctaEl = document.querySelector('.cta');
+    var btnEl = document.querySelector('.btn-start');
+    if (!ctaEl || !btnEl) return;
+
+    var height = btnEl.getBoundingClientRect().height;
+    if (!height) return;
+
+    ctaEl.style.setProperty('--cta-center-offset', (-height / 2) + 'px');
+  }
+
+  var ctaResizeTimer = null;
+  function scheduleCtaCenter() {
+    if (ctaResizeTimer) clearTimeout(ctaResizeTimer);
+    ctaResizeTimer = setTimeout(runCtaCenter, 100);
   }
 
   function start() {
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(run);
+      document.fonts.ready.then(runCtaCenter);
     } else {
       run();
+      runCtaCenter();
     }
+    window.addEventListener('resize', scheduleCtaCenter);
   }
 
   if (document.readyState === 'loading') {

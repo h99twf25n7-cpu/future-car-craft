@@ -234,16 +234,21 @@ html, body {
   text-align: center;
 }
 
-/* .cta's own top edge marks the 61.8% line, and btn-start is its
-   first normal-flow child, so the button's top edge lands exactly
-   on that line with no absolute-positioning trick needed; .hint
-   follows in flow below it, pushed down by the button's real
-   rendered height plus its own margin-top. */
+/* .cta's own top edge marks the 61.8% line; btn-start is its first
+   normal-flow child, and --cta-center-offset (half the button's real
+   rendered height, measured live by baseline-trim.js since it's
+   responsive/content-driven) pulls the whole block up so the
+   button's *vertical center* — and with it the already flex-centered
+   START label — lands on the line instead of the button's top edge.
+   .hint still follows in flow below the button, pushed down by its
+   real rendered height plus its own margin-top, unaffected by the
+   shift since the whole column moves together. -40px is only the
+   pre-JS/no-JS fallback (half of the button's 80px min-height). */
 .cta {
   position: absolute;
   top: 61.8%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, var(--cta-center-offset, -40px));
   display: flex;
   flex-direction: column;
   align-items: center;
