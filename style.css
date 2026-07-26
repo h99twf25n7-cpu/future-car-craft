@@ -496,7 +496,7 @@ html, body {
    gap. 40px is only the pre-JS/no-JS fallback. */
 .step-header {
   position: absolute;
-  top: 38.2%;
+  top: 38.2vh;
   left: 50%;
   transform: translate(-50%, calc(-100% + var(--step-title-center-offset, 40px)));
   width: 100%;
