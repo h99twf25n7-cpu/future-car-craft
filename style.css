@@ -485,20 +485,14 @@ html, body {
   gap: 2.6rem;
 }
 
-/* Pulled out of flow and anchored so .step-title's *visual glyph
-   center* (not the header's bottom edge) sits exactly on the 38.2%
-   golden-ratio line, matching phi-grid's h-38 guide.
-   --step-title-center-offset is added on top of the base -100%
-   (bottom-of-header-at-the-line) positioning; it's set precisely by
-   step-title-center.js, which measures .step-title's real on-page
-   position (it isn't always the header's last child — pages with a
-   .step-sub have that below it instead) and corrects for the exact
-   gap. 40px is only the pre-JS/no-JS fallback. */
+/* Pulled out of flow and anchored near the 38.2% golden-ratio line,
+   matching phi-grid's h-38 guide. Fixed offset — does not move when
+   selecting suggestions grows the page below it. */
 .step-header {
   position: absolute;
   top: 38.2vh;
   left: 50%;
-  transform: translate(-50%, calc(-100% + var(--step-title-center-offset, 40px)));
+  transform: translate(-50%, calc(-100% + 40px));
   width: 100%;
   display: flex;
   flex-direction: column;
