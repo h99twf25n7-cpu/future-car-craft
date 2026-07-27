@@ -311,12 +311,20 @@ html, body {
 }
 
 /* Subtitle */
+/* Sits in the empty band between the title's 38.2% line and the
+   cta's 61.8% line, centered on the 50% line (phi-grid's h-50 cross)
+   the same way .suggestion-selected anchors to it on step pages. */
 .subtitle {
+  position: absolute;
+  top: 50vh;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(480px, 85vw);
+  text-align: center;
   font-size: clamp(var(--fs-0), 1.6vw, var(--fs-1));
   font-weight: 300;
   letter-spacing: 0.12em;
   color: var(--clr-dim);
-  margin-bottom: 3.6rem;
   opacity: 0;
   animation: fadeUp 0.8s var(--ease-out-expo) 1.1s forwards;
 }
@@ -664,12 +672,20 @@ html, body {
   text-align: center;
 }
 
+/* Pulled out of flow and anchored so its bottom edge sits exactly on
+   the viewport's 50%-height guide line (phi-grid's center cross).
+   Fixed offset — does not move when the suggestion list above or
+   below it changes size. */
 .suggestion-selected {
+  position: absolute;
+  top: 50vh;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: min(560px, 90vw);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.6rem;
-  margin-top: 0.2rem;
   padding-bottom: 0.6rem;
   border-bottom: 1px solid rgba(var(--clr-accent-rgb), 0.15);
 }
@@ -1136,6 +1152,10 @@ body.page-scroll {
     font-size: clamp(var(--fs-3), 6vmin, var(--fs-6));
   }
   .subtitle {
+    position: static;
+    transform: none;
+    width: auto;
+    max-width: 90%;
     margin-bottom: 0.8rem;
   }
   .cta {
