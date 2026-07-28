@@ -312,20 +312,19 @@ html, body {
 
 /* Subtitle */
 /* Sits in the empty band between the title's 38.2% line and the
-   cta's 61.8% line, its bottom edge sitting on the 50% line (phi-grid's
-   h-50 cross). Sized at 1.5x .hint's font-size and kept to one line
-   (nowrap) per spec, rather than sharing the title/cta's own type
-   scale. Uses fadeIn (opacity-only), not the shared fadeUp keyframes —
-   fadeUp's "to" state sets a bare transform: translateY(0), which,
-   since it's applied to this element directly rather than to a child
-   span, would replace this rule's own positioning transform with an
-   identity matrix once the animation finishes and throw off both the
-   centering and the golden-ratio anchor. */
+   cta's 61.8% line, dead-centered on the viewport (50vw, 50vh) on both
+   axes. Sized at 1.5x .hint's font-size and kept to one line (nowrap)
+   per spec, rather than sharing the title/cta's own type scale. Uses
+   fadeIn (opacity-only), not the shared fadeUp keyframes — fadeUp's
+   "to" state sets a bare transform: translateY(0), which, since it's
+   applied to this element directly rather than to a child span, would
+   replace this rule's own centering transform with an identity matrix
+   once the animation finishes. */
 .subtitle {
   position: absolute;
   top: 50vh;
   left: 50%;
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, -50%);
   width: max-content;
   max-width: 85vw;
   text-align: center;
@@ -1131,10 +1130,8 @@ body.page-scroll {
   .subtitle {
     margin-bottom: 2.8rem;
     /* Too narrow to hold the full line at 1.5x .hint's size without
-       spilling past the viewport edge — allow it to wrap here. The
-       bottom edge still lands exactly on the 50vh line either way,
-       since translate(-50%, -100%) pushes up by the block's own
-       rendered height, single line or wrapped. */
+       spilling past the viewport edge — allow it to wrap here. Still
+       centers on (50vw, 50vh) either way, single line or wrapped. */
     white-space: normal;
     width: min(480px, 85vw);
   }
