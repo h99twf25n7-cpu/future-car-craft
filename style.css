@@ -483,22 +483,27 @@ html, body {
 /* ============================================================
    Step Page — Vehicle Shape Selection
    ============================================================ */
-/* padding-top has a 38.2vh-based floor so the centered flex content
-   below can never re-center upward into the space that .step-header
-   (anchored to the 38.2% line, out of flow) occupies above it —
-   .step-header's height varies per page (some add a .step-sub line)
-   but its bottom edge is always pinned at 38.2vh, so clearing that
-   plus a small gap keeps every page overlap-free regardless. */
+/* .step-header is pulled out of flow, anchored to the 38.2% line (see
+   its own rule below). .prompt-input is likewise pulled out, anchored
+   to the 50% line. Below that, .prompt-box and .step-actions stay in
+   NORMAL FLOW, starting from a fixed padding-top that clears past
+   .prompt-input's line — not flex-centered (justify-content:center
+   was tried first, but re-centering on total content height shifted
+   .prompt-box up as selections/the ratio row added height, creeping
+   back into .prompt-input's fixed position). A fixed padding-top
+   instead means .prompt-box always starts at the same point, and
+   .step-actions, immediately after it in flow, is guaranteed to never
+   overlap it — it just moves down as .prompt-box grows, which is fine
+   since only the input itself needed to stay perfectly still. */
 .step-stage {
   position: relative;
   z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   min-height: 100vh;
-  padding: 3rem 2rem 6rem;
-  padding-top: max(3rem, calc(38.2vh + 2rem));
+  padding: 3rem 2rem 3rem;
+  padding-top: calc(50vh + 1rem);
   gap: 2.6rem;
 }
 
@@ -632,13 +637,13 @@ html, body {
 }
 
 /* Free-text prompt input */
-/* fadeIn (opacity-only), not fadeUp: fadeUp's "to" keyframe sets a
-   bare transform, and any non-"none" transform on this element would
-   make it a containing block for .prompt-input/.suggestion-selected's
-   position:absolute — resolving their "top: 50vh" against .prompt-box
-   itself instead of the viewport, silently breaking the golden-ratio
-   anchor (this is exactly what was happening to .suggestion-selected
-   before this fix). */
+/* Normal flow child of .step-stage, starting right where its fixed
+   padding-top clears .prompt-input's 50vh anchor (.prompt-input is a
+   sibling now, not a child of this box — it used to be, but any
+   transform on this element, including fadeUp's leftover one, would
+   have made it a containing block for a nested .prompt-input's
+   position:absolute, resolving "top: 50vh" against this box instead
+   of the viewport). */
 .prompt-box {
   display: flex;
   flex-direction: column;
@@ -697,18 +702,12 @@ html, body {
   text-align: center;
 }
 
-/* Pulled out of flow and anchored so its bottom edge sits exactly on
-   the viewport's 50%-height guide line (phi-grid's center cross).
-   Fixed offset — does not move when the suggestion list above or
-   below it changes size. Note: this now shares the exact same anchor
-   as .prompt-input, so the two will overlap when this is visible —
-   accepted for now, to be adjusted separately. */
+/* Normal flow, right below .prompt-input inside the now fixed-anchor
+   .prompt-box — selecting an item adds its chip here, which pushes
+   .suggestion-list (the still-unselected candidates) further down in
+   the same flow, rather than overlapping it. */
 .suggestion-selected {
-  position: absolute;
-  top: 50vh;
-  left: 50%;
-  transform: translate(-50%, -100%);
-  width: min(560px, 90vw);
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -888,6 +887,14 @@ html, body {
 }
 
 /* Step actions (back / next) */
+/* Normal flow child of .step-stage, right after .prompt-box — always
+   below it with a fixed gap regardless of .prompt-box's own height
+   (selected chips, the ratio row), guaranteed by flow layout rather
+   than by both being independently anchored to fixed viewport points
+   (which, tried first, let a tall .prompt-box overlap this instead of
+   pushing it down). Back to fadeUp now that it's flow-based again —
+   no positioning transform of its own left for fadeUp's stray one to
+   clobber. */
 .step-actions {
   display: flex;
   align-items: center;
@@ -952,8 +959,14 @@ html, body {
 /* ============================================================
    Body Color Glow Preview
    ============================================================ */
+/* Anchored in the gap between .step-header (38.2vh) and .prompt-input
+   (50vh) now that .step-stage no longer flex-centers its children —
+   step3.html is the only page with this element. */
 .car-preview {
-  position: relative;
+  position: absolute;
+  top: calc(38.2vh + 4rem);
+  left: 50%;
+  transform: translateX(-50%);
   width: min(100%, 380px);
   height: 110px;
   opacity: 0;
@@ -1216,8 +1229,11 @@ body.page-scroll {
     display: none;
   }
 
-  /* Step pages: stop forcing a min-height of 100vh and tighten
-     spacing so back/next stay reachable without excess scrolling. */
+  /* Step pages: stop forcing a min-height of 100vh, drop the fixed
+     vh-based padding-top (.step-header/.prompt-input/.car-preview's
+     own anchors below), and tighten spacing so back/next stay
+     reachable without excess scrolling. .prompt-box/.step-actions
+     were already flow-based, so they need no reset here. */
   .step-stage {
     min-height: auto;
     padding: 1.2rem 1.5rem 2rem;
@@ -1228,6 +1244,17 @@ body.page-scroll {
     transform: none;
     width: auto;
     gap: 0.4rem;
+  }
+  .prompt-input {
+    position: static;
+    transform: none;
+    width: 100%;
+  }
+  .car-preview {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
   }
 }
 

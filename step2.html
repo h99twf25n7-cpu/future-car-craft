@@ -22,16 +22,17 @@
       <p class="step-sub">車両を動かすパワーユニットを自由に文字で入力すると、次のステップに進めます</p>
     </div>
 
+    <input
+      type="text"
+      id="fuelPrompt"
+      class="prompt-input"
+      placeholder="例：ハイブリッド、EV、水素..."
+      maxlength="80"
+      autocomplete="off"
+      aria-label="燃料タイプ"
+    />
+
     <div class="prompt-box">
-      <input
-        type="text"
-        id="fuelPrompt"
-        class="prompt-input"
-        placeholder="例：ハイブリッド、EV、水素..."
-        maxlength="80"
-        autocomplete="off"
-        aria-label="燃料タイプ"
-      />
       <p class="prompt-hint">思い描いているパワーユニットを言葉で説明してください（候補は組み合わせて選べます）</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>

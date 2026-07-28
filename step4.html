@@ -22,16 +22,17 @@
       <p class="step-sub">車が置かれるシーンを自由に文字で入力すると、生成される画像に反映されます（候補は1つだけ選べます）</p>
     </div>
 
+    <input
+      type="text"
+      id="backgroundPrompt"
+      class="prompt-input"
+      placeholder="例：都市の夜景、砂漠、宇宙..."
+      maxlength="80"
+      autocomplete="off"
+      aria-label="背景"
+    />
+
     <div class="prompt-box">
-      <input
-        type="text"
-        id="backgroundPrompt"
-        class="prompt-input"
-        placeholder="例：都市の夜景、砂漠、宇宙..."
-        maxlength="80"
-        autocomplete="off"
-        aria-label="背景"
-      />
       <p class="prompt-hint">未入力の場合はスタジオ背景で生成されます</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>

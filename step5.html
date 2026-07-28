@@ -22,16 +22,17 @@
       <p class="step-sub">完成イメージの画風を自由に文字で入力すると、生成される画像に反映されます（候補は1つだけ選べます）</p>
     </div>
 
+    <input
+      type="text"
+      id="stylePrompt"
+      class="prompt-input"
+      placeholder="例：油絵風、鉛筆画、サイバーパンク..."
+      maxlength="80"
+      autocomplete="off"
+      aria-label="アートスタイル"
+    />
+
     <div class="prompt-box">
-      <input
-        type="text"
-        id="stylePrompt"
-        class="prompt-input"
-        placeholder="例：油絵風、鉛筆画、サイバーパンク..."
-        maxlength="80"
-        autocomplete="off"
-        aria-label="アートスタイル"
-      />
       <p class="prompt-hint">未入力の場合は写実的な写真スタイルで生成されます</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>

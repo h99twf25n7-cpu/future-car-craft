@@ -21,15 +21,16 @@
       <h1 class="step-title">車両の形状を入力してください</h1>
     </div>
 
+    <input
+      type="text"
+      id="shapePrompt"
+      class="prompt-input"
+      maxlength="80"
+      autocomplete="off"
+      aria-label="車両の形状"
+    />
+
     <div class="prompt-box">
-      <input
-        type="text"
-        id="shapePrompt"
-        class="prompt-input"
-        maxlength="80"
-        autocomplete="off"
-        aria-label="車両の形状"
-      />
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
