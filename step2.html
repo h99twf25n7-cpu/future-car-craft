@@ -95,12 +95,9 @@
     // 入れ替えできるようにする。一部の項目はさらに子項目を持ち、クリックすると
     // 候補リストがその子項目に切り替わる2段階構造になっている。
     const SUGGESTION_POOL = [
-      'ガソリン', 'ディーゼル',
-      { label: 'ハイブリッド', children: ['マイルドハイブリッド', 'ストロングハイブリッド', 'プラグインハイブリッド'] },
-      { label: 'EV（電気）', children: ['リチウムイオン電池', '全固体電池', '急速充電対応'] },
-      '水素（FCV）', '太陽光', '風力',
+      'ディーゼル', 'ガソリン', 'ハイオク', 'EV', '水素',
     ];
-    const SUGGESTION_COUNT = 6;
+    const SUGGESTION_COUNT = 5;
     const COMBINE_SEPARATOR = ' × ';
 
     const selectedList = document.getElementById('selectedList');
