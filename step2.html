@@ -131,7 +131,10 @@
     }
 
     function pickNewSuggestions() {
-      currentPicks = pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT);
+      // The pool is now exactly the 5 specified fuel types, always
+      // shown in full, so keep them in that fixed order rather than
+      // shuffling — pickRandomSuggestions is unused here now.
+      currentPicks = SUGGESTION_POOL.slice(0, SUGGESTION_COUNT);
     }
 
     // 選択済みの候補は、常に見えるように候補リストの上に固定表示する。
