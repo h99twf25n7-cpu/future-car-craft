@@ -648,7 +648,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 0.9rem;
-  width: min(580px, 90vw);
+  width: min(560px, 90vw);
   opacity: 0;
   animation: fadeIn 0.8s ease 0.35s forwards;
 }
@@ -663,7 +663,7 @@ html, body {
   top: 50vh;
   left: 50%;
   transform: translate(-50%, -100%);
-  width: min(580px, 90vw);
+  width: min(560px, 90vw);
   padding: 1.1rem 1.4rem;
   border: 1.5px solid rgba(var(--clr-accent-rgb), 0.18);
   border-radius: 10px;
@@ -725,6 +725,18 @@ html, body {
   justify-content: center;
   gap: 0.6rem;
   margin-top: 0.2rem;
+}
+
+/* Forces a flex-wrap line break at a specific point (see
+   CATEGORIES[].breakAfter in step.html's inline script) regardless of
+   viewport width — a 0-width, full-line-claiming item pushes every
+   following chip onto a new row, unlike relying on the container's
+   width alone, which shifts where chips naturally wrap as the fluid
+   (vw-based) chip font-size changes across screen sizes. */
+.suggestion-break {
+  flex-basis: 100%;
+  width: 0;
+  height: 0;
 }
 
 .suggestion-chip {

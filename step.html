@@ -86,6 +86,7 @@
       {
         label: '動物',
         items: ['キリン', 'ゾウ', 'ライオン', 'トラ', 'チーター', 'ワニ', 'クジラ', 'シャチ', 'イルカ', 'サメ', 'ペンギン'],
+        breakAfter: ['ワニ'],
       },
       {
         label: '昆虫',
@@ -136,6 +137,10 @@
       const category = CATEGORIES[categoryIndex];
       const selected = currentSelected();
       const items = activeParent ? itemChildren(activeParent) : category.items;
+      // Only applies to the top-level category view (not a child-item
+      // drill-down), so a forced row break doesn't survive into
+      // unrelated sub-lists.
+      const breakAfter = activeParent ? null : category.breakAfter;
       suggestionList.innerHTML = '';
 
       if (activeParent) {
@@ -157,6 +162,18 @@
         chip.dataset.value = label;
         chip.textContent = children ? `${label} ›` : label;
         suggestionList.appendChild(chip);
+
+        // Forces suggestion-list's flex-wrap to break to a new row
+        // right here, regardless of viewport width/chip font-size —
+        // width-based natural wrapping shifts the break point across
+        // screen sizes since the chip font-size itself is fluid (vw
+        // clamp), so this is deliberate rather than incidental.
+        if (breakAfter && breakAfter.includes(label)) {
+          const rowBreak = document.createElement('span');
+          rowBreak.className = 'suggestion-break';
+          rowBreak.setAttribute('aria-hidden', 'true');
+          suggestionList.appendChild(rowBreak);
+        }
       });
     }
 
