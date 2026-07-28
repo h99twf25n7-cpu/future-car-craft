@@ -632,6 +632,13 @@ html, body {
 }
 
 /* Free-text prompt input */
+/* fadeIn (opacity-only), not fadeUp: fadeUp's "to" keyframe sets a
+   bare transform, and any non-"none" transform on this element would
+   make it a containing block for .prompt-input/.suggestion-selected's
+   position:absolute — resolving their "top: 50vh" against .prompt-box
+   itself instead of the viewport, silently breaking the golden-ratio
+   anchor (this is exactly what was happening to .suggestion-selected
+   before this fix). */
 .prompt-box {
   display: flex;
   flex-direction: column;
@@ -639,11 +646,20 @@ html, body {
   gap: 0.9rem;
   width: min(560px, 90vw);
   opacity: 0;
-  animation: fadeUp 0.8s var(--ease-out-expo) 0.35s forwards;
+  animation: fadeIn 0.8s ease 0.35s forwards;
 }
 
+/* Pulled out of flow and anchored so its bottom edge sits exactly on
+   the viewport's 50%-height guide line (phi-grid's center cross), the
+   same technique as .subtitle on the top page. Fixed regardless of
+   how many items are selected — selecting more never moves this box,
+   since it no longer depends on .prompt-box's flex flow at all. */
 .prompt-input {
-  width: 100%;
+  position: absolute;
+  top: 50vh;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: min(560px, 90vw);
   padding: 1.1rem 1.4rem;
   border: 1.5px solid rgba(var(--clr-accent-rgb), 0.18);
   border-radius: 10px;
@@ -684,7 +700,9 @@ html, body {
 /* Pulled out of flow and anchored so its bottom edge sits exactly on
    the viewport's 50%-height guide line (phi-grid's center cross).
    Fixed offset — does not move when the suggestion list above or
-   below it changes size. */
+   below it changes size. Note: this now shares the exact same anchor
+   as .prompt-input, so the two will overlap when this is visible —
+   accepted for now, to be adjusted separately. */
 .suggestion-selected {
   position: absolute;
   top: 50vh;
