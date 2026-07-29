@@ -977,8 +977,11 @@ html, body {
    are pinned to those same two formulas (with a small margin on each
    side) rather than an arbitrary rem offset, so the glow always fits
    inside that gap instead of overshooting into .prompt-box's content
-   (the selected-color chips) on shorter viewports, where the gap is
-   smaller in px. step3.html is the only page with this element.
+   (the selected-color chips) below it, on shorter viewports where the
+   gap is smaller in px. complete.html uses this default (floating)
+   version; step3.html uses the .car-preview--inline override below
+   instead, since a floating glow above the fixed prompt-input still
+   left too little room not to brush against the selected-color chips.
    fadeIn, not fadeUp: fadeUp's "to" keyframe sets a bare transform,
    which would replace this rule's own translateX(-50%) with an
    identity matrix once the animation finishes, shifting the glow off
@@ -992,6 +995,23 @@ html, body {
   height: calc(11.8vh - 51px);
   opacity: 0;
   animation: fadeIn 0.8s ease 0.2s forwards;
+}
+
+/* step3.html only: placed in normal flow inside .prompt-box, between
+   .prompt-hint and .suggestion-selected, instead of floating above the
+   fixed-position .prompt-input. Normal flow means it always claims its
+   own space, so it can never overlap the selected-color chips below it
+   regardless of viewport height — unlike the floating .car-preview,
+   whose available gap above .prompt-box shrinks on shorter viewports.
+   position: relative (not static) so it still establishes a containing
+   block for .car-preview__glow's own position: absolute. */
+.car-preview--inline {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  width: 100%;
+  height: 56px;
 }
 
 .car-preview__glow {

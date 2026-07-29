@@ -22,10 +22,6 @@
       <p class="step-sub">車体の色を自由に文字で入力してください（2色以上を組み合わせるとマーブルなどの混ぜ方も選べます）</p>
     </div>
 
-    <div class="car-preview" id="carPreview">
-      <div class="car-preview__glow" aria-hidden="true"></div>
-    </div>
-
     <input
       type="text"
       id="colorPrompt"
@@ -38,6 +34,9 @@
 
     <div class="prompt-box">
       <p class="prompt-hint">思い描いているボディカラーを言葉で説明してください（候補は組み合わせて選べます）</p>
+      <div class="car-preview car-preview--inline" id="carPreview">
+        <div class="car-preview__glow" aria-hidden="true"></div>
+      </div>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
