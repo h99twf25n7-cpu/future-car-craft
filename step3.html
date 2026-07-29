@@ -136,10 +136,12 @@
     }
 
     // 基本の車体カラー候補。この順番のまま常時全て表示する（シャッフルなし）。
+    // 1段目: ホワイト/ブラック/シルバー/レッド/ブルー、2段目: グリーン/イエロー/オレンジ。
     const SUGGESTION_POOL = [
-      'レッド', 'ブルー', 'グリーン', 'オレンジ',
-      'イエロー', 'ホワイト', 'ブラック', 'シルバー',
+      'ホワイト', 'ブラック', 'シルバー', 'レッド', 'ブルー',
+      'グリーン', 'イエロー', 'オレンジ',
     ];
+    const SUGGESTION_BREAK_AFTER = ['ブルー'];
     const COMBINE_SEPARATOR = ' × ';
     const DEFAULT_HEX = '#8892a6';
 
@@ -206,6 +208,14 @@
         chip.dataset.value = label;
         chip.textContent = children ? `${label} ›` : label;
         suggestionList.appendChild(chip);
+
+        // ホワイト〜ブルーの5色を1段目、グリーン以降を2段目に固定するための強制改行。
+        if (!activeParent && SUGGESTION_BREAK_AFTER.includes(label)) {
+          const rowBreak = document.createElement('span');
+          rowBreak.className = 'suggestion-break';
+          rowBreak.setAttribute('aria-hidden', 'true');
+          suggestionList.appendChild(rowBreak);
+        }
       });
     }
 
