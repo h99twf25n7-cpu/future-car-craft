@@ -30,14 +30,12 @@
       <div class="summary-row">
         <span class="summary-row__label">形状</span>
         <span class="summary-row__value" id="rowShape">
-          <span class="summary-row__icon" aria-hidden="true">—</span>
           <span>未選択</span>
         </span>
       </div>
       <div class="summary-row" id="rowFuelWrap" hidden>
         <span class="summary-row__label">燃料タイプ</span>
         <span class="summary-row__value" id="rowFuel">
-          <span class="summary-row__icon" aria-hidden="true">—</span>
           <span>未選択</span>
         </span>
       </div>
@@ -51,24 +49,18 @@
       <div class="summary-row" id="rowBackgroundWrap" hidden>
         <span class="summary-row__label">背景</span>
         <span class="summary-row__value" id="rowBackground">
-          <span class="summary-row__icon" aria-hidden="true">🏞️</span>
           <span>未選択</span>
         </span>
       </div>
       <div class="summary-row" id="rowStyleWrap" hidden>
         <span class="summary-row__label">アートスタイル</span>
         <span class="summary-row__value" id="rowStyle">
-          <span class="summary-row__icon" aria-hidden="true">🎨</span>
           <span>写真（フォトリアル）</span>
         </span>
       </div>
     </div>
 
     <div class="ai-image" id="aiImageSection">
-      <div class="ai-image__password">
-        <label for="aiImagePassword" class="ai-image__password-label">パスワード</label>
-        <input type="password" id="aiImagePassword" class="ai-image__password-input" autocomplete="current-password" />
-      </div>
       <button type="button" class="btn-next" id="generateImageBtn">
         <span>画像を作成</span>
       </button>
@@ -102,16 +94,6 @@
   </footer>
 
   <script>
-    const SHAPE_ICONS = {
-      kei:     '🚗',
-      sedan:   '🚗',
-      suv:     '🚙',
-      sports:  '🏎️',
-      minivan: '🚐',
-      truck:   '🛻',
-      coupe:   '🚘',
-    };
-
     function readStorage(key) {
       try {
         return localStorage.getItem(key);
@@ -121,9 +103,7 @@
     }
 
     const shapeLabel = readStorage('fcc:selectedShape');
-    const shapeKey = readStorage('fcc:selectedShapeKey') || 'sedan';
     const fuelLabel = readStorage('fcc:selectedFuel');
-    const fuelIcon = readStorage('fcc:selectedFuelIcon') || '⚡';
     const colorLabel = readStorage('fcc:selectedColor');
     const colorMix = readStorage('fcc:selectedColorMix') || 'solid';
     let colorHexes = [];
@@ -143,14 +123,12 @@
 
     if (shapeLabel) {
       const row = document.getElementById('rowShape');
-      row.querySelector('.summary-row__icon').textContent = SHAPE_ICONS[shapeKey] || '🚗';
       row.querySelector('span:last-child').textContent = shapeLabel;
     }
 
     if (fuelLabel) {
       document.getElementById('rowFuelWrap').hidden = false;
       const row = document.getElementById('rowFuel');
-      row.querySelector('.summary-row__icon').textContent = fuelIcon;
       row.querySelector('span:last-child').textContent = fuelLabel;
     }
 
@@ -177,7 +155,7 @@
       document.getElementById('rowStyle').querySelector('span:last-child').textContent = styleLabel;
     }
 
-    // 画像生成は /api/generate-image（サーバー側でパスワード確認 → Gemini API 呼び出し）
+    // 画像生成は /api/generate-image（サーバー側でGemini API 呼び出し）
     // に prompt を POST し、返ってきた base64 画像データを <img> に表示する。
     // 完全リセット状態：あらかじめ用意した英語の説明句・固定スタイル文言は
     // 一切持たない。ここに追記する定義は自分で一つずつ決めていく
@@ -298,7 +276,6 @@
     const aiImageProgressText = document.getElementById('aiImageProgressText');
     const aiImageResult = document.getElementById('aiImageResult');
     const aiImageImg = document.getElementById('aiImageImg');
-    const aiImagePassword = document.getElementById('aiImagePassword');
 
     // gpt-image-1 は通常のリクエストでは生成の途中経過を返さないため、
     // 生成にかかる典型的な時間（十数秒〜数十秒）を目安に、90%までは
@@ -331,13 +308,6 @@
     }
 
     generateImageBtn.addEventListener('click', async () => {
-      const password = aiImagePassword.value;
-      if (!password) {
-        aiImageStatus.textContent = 'パスワードを入力してください。';
-        aiImagePassword.focus();
-        return;
-      }
-
       generateImageBtn.disabled = true;
       aiImageStatus.textContent = '画像を生成しています…';
       aiImageResult.hidden = true;
@@ -347,10 +317,9 @@
         const res = await fetch(`${API_BASE}/api/generate-image`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password, prompt: buildImagePrompt() }),
+          body: JSON.stringify({ prompt: buildImagePrompt() }),
         });
         const data = await res.json();
-        aiImagePassword.value = '';
 
         if (!res.ok) {
           stopProgress();
@@ -371,7 +340,6 @@
       } catch (e) {
         stopProgress();
         aiImageProgress.hidden = true;
-        aiImagePassword.value = '';
         aiImageStatus.textContent = '画像の生成に失敗しました。もう一度お試しください。';
         generateImageBtn.disabled = false;
       }
