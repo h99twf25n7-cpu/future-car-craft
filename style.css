@@ -636,6 +636,7 @@ html, body {
   justify-content: center;
   gap: 0.6rem;
   padding-bottom: 0.6rem;
+  margin-bottom: 0.8rem;
   border-bottom: 1px solid rgba(var(--clr-accent-rgb), 0.15);
 }
 
