@@ -164,15 +164,27 @@ html, body {
 }
 
 /* Eyebrow label */
+/* Sits directly above .title regardless of viewport size: .title is
+   pinned to the 38.2% golden-ratio line independently of flow (see
+   below), so the eyebrow can't rely on a normal-flow margin to clear
+   it — baseline-trim.js measures .title's real rendered top (post
+   centering-transform) and writes it here as --eyebrow-bottom-px, a
+   fixed pixel offset up from .hero's own top. calc(38.2% - 4rem) is
+   only the pre-JS/no-JS fallback, roughly clearing the title at
+   typical viewport sizes. */
 .eyebrow {
+  position: absolute;
+  top: var(--eyebrow-bottom-px, calc(38.2% - 4rem));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
   font-size: clamp(var(--fs-00), 1.2vw, var(--fs-0));
   font-weight: 500;
   letter-spacing: 0.35em;
   color: var(--clr-accent);
   text-transform: uppercase;
-  margin-bottom: 1.6rem;
   opacity: 0;
-  animation: fadeUp 0.8s var(--ease-out-expo) 0.2s forwards;
+  animation: fadeIn 0.8s var(--ease-out-expo) 0.2s forwards;
 }
 
 /* Main title */
@@ -212,7 +224,10 @@ html, body {
 }
 .title__word--car {
   animation: fadeUp 0.9s var(--ease-out-expo) 0.7s forwards;
-  color: var(--clr-white);
+  background: linear-gradient(135deg, var(--clr-accent) 0%, var(--clr-accent2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .title__word--craft {
   animation: fadeUp 0.9s var(--ease-out-expo) 0.9s forwards;
@@ -921,6 +936,15 @@ html, body {
   transform: none;
   width: 100%;
   height: 56px;
+  margin-bottom: 0.5rem;
+}
+
+/* Contained within its own box (unlike the floating .car-preview's glow,
+   which overflows on purpose since it has open space around it) so the
+   blur doesn't bleed into .suggestion-selected right below it in flow. */
+.car-preview--inline .car-preview__glow {
+  inset: 0 8%;
+  height: 100%;
 }
 
 .car-preview__glow {

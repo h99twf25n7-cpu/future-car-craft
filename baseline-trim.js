@@ -77,6 +77,28 @@
     titleEl.style.setProperty('--title-center-offset', (requiredTranslateYPx / fontSizePx) + 'em');
   }
 
+  // Places .eyebrow directly above .title with a fixed visual gap,
+  // regardless of viewport size — .title's box-model top isn't its
+  // visual ink-top (the centering transform above shifts the glyphs
+  // up from it), so a plain margin/percentage can't clear it
+  // reliably. Measures .title's real post-transform rendered top and
+  // works back from there, the same live-measurement approach as
+  // measureGlyphCenterFromBaselinePx above.
+  function runEyebrowPosition() {
+    var heroEl = document.querySelector('.hero');
+    var titleEl = document.querySelector('.title');
+    var eyebrowEl = document.querySelector('.eyebrow');
+    if (!heroEl || !titleEl || !eyebrowEl) return;
+
+    var heroTop = heroEl.getBoundingClientRect().top;
+    var titleTop = titleEl.getBoundingClientRect().top;
+    var eyebrowHeight = eyebrowEl.getBoundingClientRect().height;
+    var gapPx = 24;
+
+    var topPx = titleTop - heroTop - eyebrowHeight - gapPx;
+    eyebrowEl.style.setProperty('--eyebrow-bottom-px', topPx + 'px');
+  }
+
   // Centers the START button (and its already flex-centered label)
   // on the 61.8% golden-ratio line, instead of just its top edge.
   // .cta stays at top:61.8% and .btn-start stays its first in-flow
@@ -102,15 +124,23 @@
     ctaResizeTimer = setTimeout(runCtaCenter, 100);
   }
 
+  var eyebrowResizeTimer = null;
+  function scheduleEyebrowPosition() {
+    if (eyebrowResizeTimer) clearTimeout(eyebrowResizeTimer);
+    eyebrowResizeTimer = setTimeout(runEyebrowPosition, 100);
+  }
+
   function start() {
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(run);
+      document.fonts.ready.then(run).then(runEyebrowPosition);
       document.fonts.ready.then(runCtaCenter);
     } else {
       run();
+      runEyebrowPosition();
       runCtaCenter();
     }
     window.addEventListener('resize', scheduleCtaCenter);
+    window.addEventListener('resize', scheduleEyebrowPosition);
   }
 
   if (document.readyState === 'loading') {

@@ -44,12 +44,6 @@
           <span>未選択</span>
         </span>
       </div>
-      <div class="summary-row" id="rowAngleWrap" hidden>
-        <span class="summary-row__label">画角</span>
-        <span class="summary-row__value" id="rowAngle">
-          <span>未選択</span>
-        </span>
-      </div>
       <div class="summary-row" id="rowBackgroundWrap" hidden>
         <span class="summary-row__label">背景</span>
         <span class="summary-row__value" id="rowBackground">
@@ -81,7 +75,7 @@
     </div>
 
     <div class="step-actions">
-      <a href="step6.html" class="btn-back"><span aria-hidden="true">←</span><span>BACK</span></a>
+      <a href="step5.html" class="btn-back"><span aria-hidden="true">←</span><span>BACK</span></a>
       <button type="button" class="btn-next" id="restartBtn">
         <span>RESTART</span>
         <span aria-hidden="true">→</span>
@@ -90,7 +84,6 @@
   </main>
 
   <footer class="footer">
-    <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot footer__dot--active"></span>
     <span class="footer__dot footer__dot--active"></span>
@@ -115,7 +108,6 @@
     try {
       colorHexes = JSON.parse(readStorage('fcc:selectedColorHexes') || '[]');
     } catch (e) {}
-    const angleLabel = readStorage('fcc:selectedAngle');
     const backgroundLabel = readStorage('fcc:selectedBackground');
     const styleLabel = readStorage('fcc:selectedStyle');
 
@@ -144,11 +136,6 @@
       row.querySelector('span:last-child').textContent = colorLabel;
     }
 
-    if (angleLabel) {
-      document.getElementById('rowAngleWrap').hidden = false;
-      document.getElementById('rowAngle').querySelector('span:last-child').textContent = angleLabel;
-    }
-
     if (backgroundLabel) {
       document.getElementById('rowBackgroundWrap').hidden = false;
       document.getElementById('rowBackground').querySelector('span:last-child').textContent = backgroundLabel;
@@ -174,9 +161,6 @@
 
     const FUEL_PROMPT_MAP = {};
     const FUEL_KEYS = Object.keys(FUEL_PROMPT_MAP).sort((a, b) => b.length - a.length);
-
-    const ANGLE_PROMPT_MAP = {};
-    const ANGLE_KEYS = Object.keys(ANGLE_PROMPT_MAP).sort((a, b) => b.length - a.length);
 
     const BACKGROUND_PROMPT_MAP = {};
     const BACKGROUND_KEYS = Object.keys(BACKGROUND_PROMPT_MAP).sort((a, b) => b.length - a.length);
@@ -262,7 +246,6 @@
         translateShapeWithRatio(shapeLabel),
         translateText(fuelLabel, FUEL_PROMPT_MAP, FUEL_KEYS, ' and '),
         buildColorClause(),
-        translateText(angleLabel, ANGLE_PROMPT_MAP, ANGLE_KEYS, ', '),
         translateText(backgroundLabel, BACKGROUND_PROMPT_MAP, BACKGROUND_KEYS, ', '),
         translateText(styleLabel, STYLE_PROMPT_MAP, STYLE_KEYS, ', '),
       ].filter(Boolean);
@@ -364,7 +347,6 @@
         localStorage.removeItem('fcc:selectedColorHexes');
         localStorage.removeItem('fcc:selectedColorMix');
         localStorage.removeItem('fcc:selectedColorRatios');
-        localStorage.removeItem('fcc:selectedAngle');
         localStorage.removeItem('fcc:selectedBackground');
         localStorage.removeItem('fcc:selectedStyle');
       } catch (e) {}

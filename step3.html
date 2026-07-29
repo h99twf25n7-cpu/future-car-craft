@@ -16,7 +16,7 @@
 
   <main class="step-stage">
     <div class="step-header">
-      <p class="step-eyebrow">STEP 3 / 06</p>
+      <p class="step-eyebrow">STEP 3 / 05</p>
       <h1 class="step-title">ボディカラーを入力してください</h1>
       <p class="step-sub">車体の色を自由に文字で入力してください（2色以上を組み合わせるとマーブルなどの混ぜ方も選べます）</p>
     </div>
@@ -76,7 +76,6 @@
     <span class="footer__dot"></span>
     <span class="footer__dot"></span>
     <span class="footer__dot footer__dot--active"></span>
-    <span class="footer__dot"></span>
     <span class="footer__dot"></span>
     <span class="footer__dot"></span>
   </footer>
@@ -410,8 +409,10 @@
       syncMixButtons();
 
       const mode = colors.length >= 2 ? mixMode : 'solid';
-      const previewEntries = entries.length ? entries : [{ hex: DEFAULT_HEX, ratio: 1 }];
-      carPreview.style.setProperty('--car-color', buildCarColorBackground(previewEntries, mode));
+      carPreview.style.setProperty(
+        '--car-color',
+        entries.length ? buildCarColorBackground(entries, mode) : 'transparent'
+      );
 
       try {
         localStorage.setItem('fcc:selectedColor', value);
