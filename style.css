@@ -970,26 +970,36 @@ html, body {
 /* ============================================================
    Body Color Glow Preview
    ============================================================ */
-/* Anchored in the gap between .step-header (38.2vh) and .prompt-input
-   (50vh) now that .step-stage no longer flex-centers its children —
-   step3.html is the only page with this element. */
+/* Anchored in the gap between .step-header's bottom edge (a fixed
+   38.2vh + 27px, per .step-header's own transform) and .prompt-box's
+   top edge (a fixed 50vh + 1rem, per .step-stage's padding-top) — both
+   fixed regardless of how many items are selected below. top/height
+   are pinned to those same two formulas (with a small margin on each
+   side) rather than an arbitrary rem offset, so the glow always fits
+   inside that gap instead of overshooting into .prompt-box's content
+   (the selected-color chips) on shorter viewports, where the gap is
+   smaller in px. step3.html is the only page with this element.
+   fadeIn, not fadeUp: fadeUp's "to" keyframe sets a bare transform,
+   which would replace this rule's own translateX(-50%) with an
+   identity matrix once the animation finishes, shifting the glow off
+   its centered position. */
 .car-preview {
   position: absolute;
-  top: calc(38.2vh + 4rem);
+  top: calc(38.2vh + 43px);
   left: 50%;
   transform: translateX(-50%);
   width: min(100%, 380px);
-  height: 110px;
+  height: calc(11.8vh - 51px);
   opacity: 0;
-  animation: fadeUp 0.8s var(--ease-out-expo) 0.2s forwards;
+  animation: fadeIn 0.8s ease 0.2s forwards;
 }
 
 .car-preview__glow {
   position: absolute;
-  inset: -10px 8% auto 8%;
-  height: 130px;
+  inset: -10% 8% auto 8%;
+  height: 120%;
   border-radius: 50%;
-  filter: blur(48px);
+  filter: blur(32px);
   opacity: 0.4;
   background: var(--car-color, transparent);
   transition: background 0.4s ease;

@@ -159,15 +159,6 @@
       return resolveCssColor(trimmed);
     }
 
-    function getColorsFromText(text) {
-      return text
-        .split(COMBINE_SEPARATOR)
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map(resolveColorHex)
-        .filter(Boolean);
-    }
-
     // 基本24色のフラットなプール（実車の塗装名＋近未来らしい鮮やかな色を
     // バランスよく含む）。ランダムに一部を候補として表示し、
     // シャッフルボタンで入れ替えられる。
@@ -360,21 +351,96 @@
       saveRatios();
     }
 
+    // テキストを色に解決しつつ、比率スライダーの値
+    // （colorRatios、未設定なら5）も一緒に返す — プレビューの帯の太さを
+    // 比率に合わせて変えるために必要。
+    function getColorEntriesFromText(text) {
+      return text
+        .split(COMBINE_SEPARATOR)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((raw) => {
+          const hex = resolveColorHex(raw);
+          if (!hex) return null;
+          const ratio = colorRatios[extractBase(raw)] ?? extractRatio(raw) ?? 5;
+          return { hex, ratio: Math.max(ratio, 0.001) };
+        })
+        .filter(Boolean);
+    }
+
+    // 選んだ「混ぜ方」ごとに見た目が変わるプレビュー背景を組み立てる。
+    // 帯の太さは比率スライダーに比例させる（比率0の色はほぼ幅なしになる）。
+    // car-preview__glow 側の blur(48px) が効くので、stripe/twotone の
+    // 硬い境界も柔らかい馴染んだ見た目になる。
+    function buildCarColorBackground(entries, mode) {
+      if (entries.length === 0) return DEFAULT_HEX;
+      if (entries.length === 1) return entries[0].hex;
+
+      const total = entries.reduce((sum, e) => sum + e.ratio, 0);
+
+      if (mode === 'twotone') {
+        const stops = [];
+        let pos = 0;
+        entries.forEach(({ hex, ratio }) => {
+          const next = pos + (ratio / total) * 100;
+          stops.push(`${hex} ${pos}%`, `${hex} ${next}%`);
+          pos = next;
+        });
+        return `linear-gradient(90deg, ${stops.join(', ')})`;
+      }
+
+      if (mode === 'stripe') {
+        // 全体のストライプ周期を比率の合計と同じ比率で分割し、
+        // 短い周期で繰り返すことで縞模様にする。
+        const cycle = entries.reduce((sum, e) => sum + e.ratio, 0) * 6;
+        const stops = [];
+        let pos = 0;
+        entries.forEach(({ hex, ratio }) => {
+          const next = pos + (ratio / total) * cycle;
+          stops.push(`${hex} ${pos}%`, `${hex} ${next}%`);
+          pos = next;
+        });
+        return `repeating-linear-gradient(45deg, ${stops.join(', ')})`;
+      }
+
+      if (mode === 'marble') {
+        // 色ごとに角度を比率配分した conic-gradient を、渦を感じさせる
+        // 開始角度・中心位置とともに使う。blur と組み合わさって
+        // マーブル状のにじみに見える。
+        const stops = [];
+        let angle = 0;
+        entries.forEach(({ hex, ratio }) => {
+          const next = angle + (ratio / total) * 360;
+          stops.push(`${hex} ${angle}deg`, `${hex} ${next}deg`);
+          angle = next;
+        });
+        return `conic-gradient(from 45deg at 35% 40%, ${stops.join(', ')})`;
+      }
+
+      // gradient（デフォルト）: 比率に応じた位置で滑らかに繋ぐ。
+      const stops = [];
+      let pos = 0;
+      entries.forEach(({ hex, ratio }, i) => {
+        stops.push(`${hex} ${pos}%`);
+        pos += (ratio / total) * 100;
+        if (i === entries.length - 1) stops.push(`${hex} 100%`);
+      });
+      return `linear-gradient(90deg, ${stops.join(', ')})`;
+    }
+
     // 比率スライダーのドラッグ中は syncRatios/renderRatioRow を呼び直さない
     // （スライダーDOMが再生成されドラッグが途切れてしまうため）。プレビューと
     // 保存だけを行う軽量版。
     function applyColorPreviewOnly() {
       const value = promptInput.value.trim();
-      const colors = getColorsFromText(value);
+      const entries = getColorEntriesFromText(value);
+      const colors = entries.map((e) => e.hex);
       mixRow.hidden = colors.length < 2;
       syncMixButtons();
 
-      const previewColors = colors.length ? colors : [DEFAULT_HEX];
       const mode = colors.length >= 2 ? mixMode : 'solid';
-      carPreview.style.setProperty(
-        '--car-color',
-        previewColors.length > 1 ? `linear-gradient(90deg, ${previewColors.join(', ')})` : previewColors[0]
-      );
+      const previewEntries = entries.length ? entries : [{ hex: DEFAULT_HEX, ratio: 1 }];
+      carPreview.style.setProperty('--car-color', buildCarColorBackground(previewEntries, mode));
 
       try {
         localStorage.setItem('fcc:selectedColor', value);
