@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>FUTURE CAR CRAFT — 画角を選択</title>
+  <title>FUTURE CAR CRAFT — アートスタイルを選択</title>
   <link rel="stylesheet" href="style.css" />
   <script src="theme.js"></script>
   <script src="phi-grid.js"></script>
@@ -17,23 +17,23 @@
 
   <main class="step-stage">
     <div class="step-header">
-      <p class="step-eyebrow">STEP 4 / 06</p>
-      <h1 class="step-title">画角を入力してください</h1>
-      <p class="step-sub">車を写す角度を自由に文字で入力すると、生成される画像に反映されます（候補は1つだけ選べます）</p>
+      <p class="step-eyebrow">STEP 6 / 06</p>
+      <h1 class="step-title">アートスタイルを入力してください</h1>
+      <p class="step-sub">完成イメージの画風を自由に文字で入力すると、生成される画像に反映されます（候補は1つだけ選べます）</p>
     </div>
 
     <input
       type="text"
-      id="anglePrompt"
+      id="stylePrompt"
       class="prompt-input"
-      placeholder="例：斜め45度、サイド、俯瞰..."
+      placeholder="例：油絵風、鉛筆画、サイバーパンク..."
       maxlength="80"
       autocomplete="off"
-      aria-label="画角"
+      aria-label="アートスタイル"
     />
 
     <div class="prompt-box">
-      <p class="prompt-hint">未入力の場合は斜め45度（フロントスリークォーター）で生成されます</p>
+      <p class="prompt-hint">未入力の場合は写実的な写真スタイルで生成されます</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
       <button type="button" class="suggestion-shuffle" id="shuffleBtn">
@@ -47,9 +47,9 @@
     </div>
 
     <div class="step-actions">
-      <a href="step3.html" class="btn-back"><span aria-hidden="true">←</span><span>BACK</span></a>
+      <a href="step5.html" class="btn-back"><span aria-hidden="true">←</span><span>BACK</span></a>
       <button type="button" class="btn-next" id="nextBtn">
-        <span>NEXT</span>
+        <span>COMPLETE</span>
         <span aria-hidden="true">→</span>
       </button>
     </div>
@@ -59,26 +59,39 @@
     <span class="footer__dot"></span>
     <span class="footer__dot"></span>
     <span class="footer__dot"></span>
+    <span class="footer__dot"></span>
+    <span class="footer__dot"></span>
     <span class="footer__dot footer__dot--active"></span>
-    <span class="footer__dot"></span>
-    <span class="footer__dot"></span>
   </footer>
 
   <script>
-    const promptInput = document.getElementById('anglePrompt');
+    const promptInput = document.getElementById('stylePrompt');
     const nextBtn = document.getElementById('nextBtn');
     const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
     const shuffleBtn = document.getElementById('shuffleBtn');
 
-    // カメラの位置・見下ろし/見上げの角度を表す候補プール。
+    // 現実的な描写スタイル＋近未来コンセプトに合う画風を混ぜたプール。一部の項目は
+    // さらに子項目を持ち、クリックすると候補リストがその子項目に切り替わる
+    // 2段階構造になっている。
     const SUGGESTION_POOL = [
-      '正面', '斜め45度（フロント）', 'サイド（真横）', '斜め45度（リア）',
-      '背面', '俯瞰（トップダウン）', 'ローアングル（見上げ）', 'アイレベル',
-      'リアクォーター', 'ドローン視点',
+      '写真（フォトリアル）', '油絵', '水彩画', '鉛筆画（スケッチ）',
+      { label: 'アニメ風', children: ['セル画風', '劇画風', 'ジブリ風'] },
+      { label: '3Dレンダー', children: ['フォトリアルCG', 'トゥーンレンダー', 'ワイヤーフレーム'] },
+      'ピクセルアート', 'サイバーパンク風', 'ネオン', 'ミニマル',
+      'ステンドグラス', 'ブループリント図面風', 'クレイアート', 'コンセプトアート',
     ];
     const SUGGESTION_COUNT = 6;
     let currentPicks = [];
+    let activeParent = null;
+
+    function itemLabel(item) {
+      return typeof item === 'string' ? item : item.label;
+    }
+
+    function itemChildren(item) {
+      return typeof item === 'string' ? null : item.children;
+    }
 
     function pickRandomSuggestions(pool, count) {
       const shuffled = [...pool];
@@ -93,7 +106,7 @@
       currentPicks = pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT);
     }
 
-    // 選択中の画角は、常に見えるように候補リストの上に固定表示する。
+    // 選択中のスタイルは、常に見えるように候補リストの上に固定表示する。
     function renderSelected() {
       const value = promptInput.value.trim();
       selectedList.innerHTML = '';
@@ -107,16 +120,31 @@
       selectedList.appendChild(chip);
     }
 
-    // 選択中の画角は並び替えず、その場を空白の穴にして位置を保持する。
+    // 選択中のスタイルは並び替えず、その場を空白の穴にして位置を保持する。
+    // 子項目を持つ候補は、そこから2段階目の候補一覧に切り替えられる。
     function renderSuggestions() {
       const value = promptInput.value.trim();
+      const items = activeParent ? itemChildren(activeParent) : currentPicks;
       suggestionList.innerHTML = '';
-      currentPicks.forEach((label) => {
+
+      if (activeParent) {
+        const backChip = document.createElement('button');
+        backChip.type = 'button';
+        backChip.className = 'suggestion-chip suggestion-chip--back';
+        backChip.dataset.action = 'back';
+        backChip.textContent = `← ${itemLabel(activeParent)}`;
+        suggestionList.appendChild(backChip);
+      }
+
+      items.forEach((item) => {
+        const label = itemLabel(item);
+        const children = itemChildren(item);
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = label === value ? 'suggestion-chip is-hole' : 'suggestion-chip';
+        if (children) chip.classList.add('has-children');
         chip.dataset.value = label;
-        chip.textContent = label;
+        chip.textContent = children ? `${label} ›` : label;
         suggestionList.appendChild(chip);
       });
     }
@@ -126,15 +154,15 @@
       renderSuggestions();
     }
 
-    function saveAngle() {
+    function saveStyle() {
       try {
-        localStorage.setItem('fcc:selectedAngle', promptInput.value.trim());
+        localStorage.setItem('fcc:selectedStyle', promptInput.value.trim());
       } catch (e) {}
     }
 
     promptInput.addEventListener('input', () => {
       refreshSuggestionUI();
-      saveAngle();
+      saveStyle();
     });
 
     promptInput.addEventListener('keydown', (e) => {
@@ -143,13 +171,25 @@
       }
     });
 
-    // 画角は複数選択不可。候補チップをクリックすると既存の選択を置き換える単一選択として動作する。
+    // アートスタイルは複数選択不可。候補チップをクリックすると既存の選択を置き換える単一選択として動作する。
     suggestionList.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="back"]')) {
+        activeParent = null;
+        renderSuggestions();
+        return;
+      }
+
       const chip = e.target.closest('.suggestion-chip');
       if (!chip || chip.classList.contains('is-hole')) return;
 
       promptInput.value = chip.dataset.value;
       promptInput.dispatchEvent(new Event('input'));
+
+      if (chip.classList.contains('has-children')) {
+        const items = activeParent ? itemChildren(activeParent) : currentPicks;
+        activeParent = items.find((it) => itemLabel(it) === chip.dataset.value) || null;
+        renderSuggestions();
+      }
     });
 
     // 選択中チップをクリックすると解除する（候補リストの上に常時表示される分）。
@@ -162,11 +202,12 @@
 
     shuffleBtn.addEventListener('click', () => {
       pickNewSuggestions();
+      activeParent = null;
       refreshSuggestionUI();
     });
 
     try {
-      const saved = localStorage.getItem('fcc:selectedAngle');
+      const saved = localStorage.getItem('fcc:selectedStyle');
       if (saved) {
         promptInput.value = saved;
       }
@@ -176,8 +217,8 @@
     refreshSuggestionUI();
 
     nextBtn.addEventListener('click', () => {
-      saveAngle();
-      window.location.href = 'step5.html';
+      saveStyle();
+      window.location.href = 'complete.html';
     });
   </script>
 
