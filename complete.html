@@ -44,6 +44,12 @@
           <span>未選択</span>
         </span>
       </div>
+      <div class="summary-row" id="rowFinishWrap" hidden>
+        <span class="summary-row__label">加工方法</span>
+        <span class="summary-row__value" id="rowFinish">
+          <span>未選択</span>
+        </span>
+      </div>
       <div class="summary-row" id="rowBackgroundWrap" hidden>
         <span class="summary-row__label">背景</span>
         <span class="summary-row__value" id="rowBackground">
@@ -104,6 +110,7 @@
     const fuelLabel = readStorage('fcc:selectedFuel');
     const colorLabel = readStorage('fcc:selectedColor');
     const colorMix = readStorage('fcc:selectedColorMix') || 'solid';
+    const colorFinish = readStorage('fcc:selectedColorFinish');
     let colorHexes = [];
     try {
       colorHexes = JSON.parse(readStorage('fcc:selectedColorHexes') || '[]');
@@ -134,6 +141,12 @@
       document.getElementById('rowColorWrap').hidden = false;
       const row = document.getElementById('rowColor');
       row.querySelector('span:last-child').textContent = colorLabel;
+    }
+
+    if (colorFinish) {
+      document.getElementById('rowFinishWrap').hidden = false;
+      const row = document.getElementById('rowFinish');
+      row.querySelector('span:last-child').textContent = colorFinish;
     }
 
     if (backgroundLabel) {
@@ -226,17 +239,27 @@
     // 「70% レーシングレッド and 30% クリスタルブラック」のような形で反映する。
     // 比率0の色は混ぜない。混ぜ方（marble/gradient/twotone/stripe）は説明句に
     // 変換せず、選択されたキーをそのまま使う。
+    const FINISH_PROMPT_MAP = {
+      'マット': 'matte',
+      'メタリック': 'metallic',
+      'パール': 'pearlescent',
+      'グロス（光沢）': 'glossy',
+      'サテン': 'satin',
+      'クローム': 'chrome',
+    };
+
     function buildColorClause() {
       if (!colorLabel) return '';
       const rawParts = colorLabel.split(' × ').map((s) => s.trim()).filter(Boolean);
+      const finishSuffix = colorFinish ? ` with a ${FINISH_PROMPT_MAP[colorFinish] || colorFinish} finish` : '';
       if (colorHexes.length > 1 && rawParts.length > 1) {
         const active = dropZeroRatio(rawParts.map(splitPartWithRatio));
-        if (active.length === 1) return `painted in ${active[0].text}`;
+        if (active.length === 1) return `painted in ${active[0].text}${finishSuffix}`;
         const pct = computePercentages(active.map((p) => p.ratio));
         const blend = active.map((p, i) => `${pct[i]}% ${p.text}`).join(' and ');
-        return `painted in a ${colorMix} blend of ${blend}`;
+        return `painted in a ${colorMix} blend of ${blend}${finishSuffix}`;
       }
-      return `painted in ${splitPartWithRatio(colorLabel).text}`;
+      return `painted in ${splitPartWithRatio(colorLabel).text}${finishSuffix}`;
     }
 
     // 完全リセット状態：固定のスタイル文言（"near-future concept design" 等）は
@@ -346,6 +369,7 @@
         localStorage.removeItem('fcc:selectedColor');
         localStorage.removeItem('fcc:selectedColorHexes');
         localStorage.removeItem('fcc:selectedColorMix');
+        localStorage.removeItem('fcc:selectedColorFinish');
         localStorage.removeItem('fcc:selectedColorRatios');
         localStorage.removeItem('fcc:selectedBackground');
         localStorage.removeItem('fcc:selectedStyle');

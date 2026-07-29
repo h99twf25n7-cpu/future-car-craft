@@ -38,14 +38,6 @@
       </div>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
-      <button type="button" class="suggestion-shuffle" id="shuffleBtn">
-        <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-        </svg>
-        <span>候補を入れ替える</span>
-      </button>
 
       <div class="mix-row" id="mixRow" hidden>
         <p class="mix-row__label">混ぜ方</p>
@@ -60,6 +52,19 @@
       <div class="ratio-row" id="ratioRow" hidden>
         <p class="ratio-row__label">比率（0〜10、0で完全に除外）</p>
         <div class="ratio-list" id="ratioList"></div>
+      </div>
+
+      <div class="mix-row" id="finishRow" hidden>
+        <p class="mix-row__label">加工方法</p>
+        <div class="suggestion-list" id="finishOptions">
+          <button type="button" class="suggestion-chip finish-chip" data-finish="">指定なし</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="マット">マット</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="メタリック">メタリック</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="パール">パール</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="グロス（光沢）">グロス（光沢）</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="サテン">サテン</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="クローム">クローム</button>
+        </div>
       </div>
     </div>
 
@@ -86,27 +91,24 @@
     const carPreview = document.getElementById('carPreview');
     const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
-    const shuffleBtn = document.getElementById('shuffleBtn');
     const mixRow = document.getElementById('mixRow');
     const mixOptions = document.getElementById('mixOptions');
     const ratioRow = document.getElementById('ratioRow');
     const ratioList = document.getElementById('ratioList');
+    const finishRow = document.getElementById('finishRow');
+    const finishOptions = document.getElementById('finishOptions');
 
-    // 色相環を30度ずつ12分割した基本色のみを hex に対応させる。
-    // 長い名前ほど優先して部分一致させる（例：「イエローグリーン」を「グリーン」より先に判定）。
+    // 基本の車体カラー候補のみを hex に対応させる。
+    // 長い名前ほど優先して部分一致させる。
     const COLOR_NAME_MAP = {
       'レッド': '#ff0000',
+      'ブルー': '#0000ff',
+      'グリーン': '#00ff00',
       'オレンジ': '#ff8000',
       'イエロー': '#ffff00',
-      'イエローグリーン': '#80ff00',
-      'グリーン': '#00ff00',
-      'スプリンググリーン': '#00ff80',
-      'シアン': '#00ffff',
-      'アジュール': '#0080ff',
-      'ブルー': '#0000ff',
-      'バイオレット': '#8000ff',
-      'マゼンタ': '#ff00ff',
-      'ローズ': '#ff0080',
+      'ホワイト': '#ffffff',
+      'ブラック': '#000000',
+      'シルバー': '#c0c0c0',
     };
     const COLOR_KEYS = Object.keys(COLOR_NAME_MAP).sort((a, b) => b.length - a.length);
 
@@ -133,18 +135,16 @@
       return resolveCssColor(trimmed);
     }
 
-    // 色相環を30度ずつ12分割したフラットなプール。ランダムに一部を候補として
-    // 表示し、シャッフルボタンで入れ替えられる。
+    // 基本の車体カラー候補。この順番のまま常時全て表示する（シャッフルなし）。
     const SUGGESTION_POOL = [
-      'レッド', 'オレンジ', 'イエロー', 'イエローグリーン',
-      'グリーン', 'スプリンググリーン', 'シアン', 'アジュール',
-      'ブルー', 'バイオレット', 'マゼンタ', 'ローズ',
+      'レッド', 'ブルー', 'グリーン', 'オレンジ',
+      'イエロー', 'ホワイト', 'ブラック', 'シルバー',
     ];
-    const SUGGESTION_COUNT = 6;
     const COMBINE_SEPARATOR = ' × ';
     const DEFAULT_HEX = '#8892a6';
 
     let mixMode = 'marble';
+    let finishType = '';
     let colorRatios = {};
     let currentPicks = [];
     let activeParent = null;
@@ -157,21 +157,12 @@
       return typeof item === 'string' ? null : item.children;
     }
 
-    function pickRandomSuggestions(pool, count) {
-      const shuffled = [...pool];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled.slice(0, count);
-    }
-
     function currentSelected() {
       return getParts().map(extractBase);
     }
 
     function pickNewSuggestions() {
-      currentPicks = pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT);
+      currentPicks = SUGGESTION_POOL;
     }
 
     // 選択済みの候補は、常に見えるように候補リストの上に固定表示する。
@@ -231,6 +222,18 @@
       Array.from(mixOptions.querySelectorAll('.mix-chip')).forEach((chip) => {
         chip.classList.toggle('is-active', chip.dataset.mix === mixMode);
       });
+    }
+
+    function syncFinishButtons() {
+      Array.from(finishOptions.querySelectorAll('.finish-chip')).forEach((chip) => {
+        chip.classList.toggle('is-active', chip.dataset.finish === finishType);
+      });
+    }
+
+    function saveFinish() {
+      try {
+        localStorage.setItem('fcc:selectedColorFinish', finishType);
+      } catch (e) {}
     }
 
     function getParts() {
@@ -408,6 +411,9 @@
       mixRow.hidden = colors.length < 2;
       syncMixButtons();
 
+      finishRow.hidden = colors.length < 1;
+      syncFinishButtons();
+
       const mode = colors.length >= 2 ? mixMode : 'solid';
       carPreview.style.setProperty(
         '--car-color',
@@ -482,6 +488,14 @@
       applyColors();
     });
 
+    finishOptions.addEventListener('click', (e) => {
+      const chip = e.target.closest('.finish-chip');
+      if (!chip) return;
+      finishType = chip.dataset.finish;
+      saveFinish();
+      syncFinishButtons();
+    });
+
     // 選択済みチップをクリックすると解除する（候補リストの上に常時表示される分）。
     selectedList.addEventListener('click', (e) => {
       const chip = e.target.closest('.suggestion-chip');
@@ -496,18 +510,14 @@
       promptInput.dispatchEvent(new Event('input'));
     });
 
-    shuffleBtn.addEventListener('click', () => {
-      pickNewSuggestions();
-      activeParent = null;
-      refreshSuggestionUI();
-    });
-
     try {
       const saved = localStorage.getItem('fcc:selectedColor');
       const savedMix = localStorage.getItem('fcc:selectedColorMix');
+      const savedFinish = localStorage.getItem('fcc:selectedColorFinish');
       const savedRatios = JSON.parse(localStorage.getItem('fcc:selectedColorRatios') || '{}');
       colorRatios = savedRatios || {};
       if (savedMix) mixMode = savedMix;
+      if (savedFinish) finishType = savedFinish;
       if (saved) {
         promptInput.value = saved;
         updateNextState();

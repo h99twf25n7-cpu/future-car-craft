@@ -25,7 +25,7 @@
       type="text"
       id="backgroundPrompt"
       class="prompt-input"
-      placeholder="例：都市の夜景、砂漠、宇宙..."
+      placeholder="例：サーキット、峠道、高速道路..."
       maxlength="80"
       autocomplete="off"
       aria-label="背景"
@@ -35,14 +35,6 @@
       <p class="prompt-hint">未入力の場合はスタジオ背景で生成されます</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
-      <button type="button" class="suggestion-shuffle" id="shuffleBtn">
-        <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-        </svg>
-        <span>候補を入れ替える</span>
-      </button>
     </div>
 
     <div class="step-actions">
@@ -67,19 +59,9 @@
     const nextBtn = document.getElementById('nextBtn');
     const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
-    const shuffleBtn = document.getElementById('shuffleBtn');
 
-    // 現実的なロケーション＋近未来コンセプトに合う背景を混ぜたプール。一部の項目は
-    // さらに子項目を持ち、クリックすると候補リストがその子項目に切り替わる
-    // 2段階構造になっている。
-    const SUGGESTION_POOL = [
-      '都市の夜景', 'サーキット', '砂漠', '山道',
-      { label: '海辺', children: ['海岸線の道路', '海沿いのハイウェイ', 'ビーチ'] },
-      '雪景色', '森林', '夕焼けの草原',
-      { label: '近未来都市', children: ['サイバーパンク街', 'ネオン街', 'スカイウェイ'] },
-      '宇宙', 'スタジオ（無地背景）',
-    ];
-    const SUGGESTION_COUNT = 6;
+    // 背景候補は道路・サーキット系のみ。この順番のまま常時全て表示する（シャッフルなし）。
+    const SUGGESTION_POOL = ['道路', 'サーキット'];
     let currentPicks = [];
     let activeParent = null;
 
@@ -91,17 +73,8 @@
       return typeof item === 'string' ? null : item.children;
     }
 
-    function pickRandomSuggestions(pool, count) {
-      const shuffled = [...pool];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled.slice(0, count);
-    }
-
     function pickNewSuggestions() {
-      currentPicks = pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT);
+      currentPicks = SUGGESTION_POOL;
     }
 
     // 選択中の背景は、常に見えるように候補リストの上に固定表示する。
@@ -196,12 +169,6 @@
       if (!chip) return;
       promptInput.value = '';
       promptInput.dispatchEvent(new Event('input'));
-    });
-
-    shuffleBtn.addEventListener('click', () => {
-      pickNewSuggestions();
-      activeParent = null;
-      refreshSuggestionUI();
     });
 
     try {
