@@ -61,7 +61,11 @@
     const suggestionList = document.getElementById('suggestionList');
 
     // 背景候補は道路・サーキット系のみ。この順番のまま常時全て表示する（シャッフルなし）。
-    const SUGGESTION_POOL = ['道路', 'サーキット'];
+    // 道路は時間帯（朝/昼/夕方/夜）の子項目を持ち、クリックすると2段階目の候補に切り替わる。
+    const SUGGESTION_POOL = [
+      { label: '道路', children: ['朝の道路', '昼の道路', '夕方の道路', '夜の道路'] },
+      'サーキット',
+    ];
     let currentPicks = [];
     let activeParent = null;
 
