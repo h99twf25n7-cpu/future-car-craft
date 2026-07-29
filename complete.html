@@ -42,7 +42,6 @@
       <div class="summary-row" id="rowColorWrap" hidden>
         <span class="summary-row__label">ボディカラー</span>
         <span class="summary-row__value" id="rowColor">
-          <span class="summary-row__swatch" aria-hidden="true"></span>
           <span>未選択</span>
         </span>
       </div>
@@ -143,13 +142,6 @@
     if (colorLabel) {
       document.getElementById('rowColorWrap').hidden = false;
       const row = document.getElementById('rowColor');
-      const swatch = row.querySelector('.summary-row__swatch');
-      if (colorHexes.length) {
-        swatch.style.background = colorHexes.length > 1
-          ? `linear-gradient(135deg, ${colorHexes.join(', ')})`
-          : colorHexes[0];
-        swatch.style.setProperty('--swatch-glow', colorHexes[0]);
-      }
       row.querySelector('span:last-child').textContent = colorLabel;
     }
 
