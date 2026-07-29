@@ -37,6 +37,20 @@
         <div class="car-preview__glow" aria-hidden="true"></div>
       </div>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
+
+      <div class="mix-row" id="finishRow" hidden>
+        <p class="mix-row__label">加工方法</p>
+        <div class="suggestion-list" id="finishOptions">
+          <button type="button" class="suggestion-chip finish-chip" data-finish="">指定なし</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="マット">マット</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="メタリック">メタリック</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="パール">パール</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="グロス（光沢）">グロス（光沢）</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="サテン">サテン</button>
+          <button type="button" class="suggestion-chip finish-chip" data-finish="クローム">クローム</button>
+        </div>
+      </div>
+
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
 
       <div class="mix-row" id="mixRow" hidden>
@@ -52,19 +66,6 @@
       <div class="ratio-row" id="ratioRow" hidden>
         <p class="ratio-row__label">比率（0〜10、0で完全に除外）</p>
         <div class="ratio-list" id="ratioList"></div>
-      </div>
-
-      <div class="mix-row" id="finishRow" hidden>
-        <p class="mix-row__label">加工方法</p>
-        <div class="suggestion-list" id="finishOptions">
-          <button type="button" class="suggestion-chip finish-chip" data-finish="">指定なし</button>
-          <button type="button" class="suggestion-chip finish-chip" data-finish="マット">マット</button>
-          <button type="button" class="suggestion-chip finish-chip" data-finish="メタリック">メタリック</button>
-          <button type="button" class="suggestion-chip finish-chip" data-finish="パール">パール</button>
-          <button type="button" class="suggestion-chip finish-chip" data-finish="グロス（光沢）">グロス（光沢）</button>
-          <button type="button" class="suggestion-chip finish-chip" data-finish="サテン">サテン</button>
-          <button type="button" class="suggestion-chip finish-chip" data-finish="クローム">クローム</button>
-        </div>
       </div>
     </div>
 
