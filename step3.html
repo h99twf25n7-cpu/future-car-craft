@@ -54,7 +54,6 @@
         <div class="suggestion-list" id="mixOptions">
           <button type="button" class="suggestion-chip mix-chip" data-mix="marble">マーブル</button>
           <button type="button" class="suggestion-chip mix-chip" data-mix="gradient">グラデーション</button>
-          <button type="button" class="suggestion-chip mix-chip" data-mix="twotone">ツートン</button>
           <button type="button" class="suggestion-chip mix-chip" data-mix="stripe">ストライプ</button>
         </div>
       </div>
@@ -350,24 +349,13 @@
 
     // 選んだ「混ぜ方」ごとに見た目が変わるプレビュー背景を組み立てる。
     // 帯の太さは比率スライダーに比例させる（比率0の色はほぼ幅なしになる）。
-    // car-preview__glow 側の blur(48px) が効くので、stripe/twotone の
+    // car-preview__glow 側の blur(48px) が効くので、stripe の
     // 硬い境界も柔らかい馴染んだ見た目になる。
     function buildCarColorBackground(entries, mode) {
       if (entries.length === 0) return DEFAULT_HEX;
       if (entries.length === 1) return entries[0].hex;
 
       const total = entries.reduce((sum, e) => sum + e.ratio, 0);
-
-      if (mode === 'twotone') {
-        const stops = [];
-        let pos = 0;
-        entries.forEach(({ hex, ratio }) => {
-          const next = pos + (ratio / total) * 100;
-          stops.push(`${hex} ${pos}%`, `${hex} ${next}%`);
-          pos = next;
-        });
-        return `linear-gradient(90deg, ${stops.join(', ')})`;
-      }
 
       if (mode === 'stripe') {
         // 全体のストライプ周期を比率の合計と同じ比率で分割し、
