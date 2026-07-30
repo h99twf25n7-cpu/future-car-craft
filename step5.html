@@ -35,14 +35,6 @@
       <p class="prompt-hint">未入力の場合は写実的な写真スタイルで生成されます</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
-      <button type="button" class="suggestion-shuffle" id="shuffleBtn">
-        <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <polyline points="1 20 1 14 7 14"></polyline>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-        </svg>
-        <span>候補を入れ替える</span>
-      </button>
     </div>
 
     <div class="step-actions">
@@ -67,16 +59,9 @@
     const nextBtn = document.getElementById('nextBtn');
     const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
-    const shuffleBtn = document.getElementById('shuffleBtn');
 
-    // 現実的な描写スタイル＋近未来コンセプトに合う画風を混ぜたプール。一部の項目は
-    // さらに子項目を持ち、クリックすると候補リストがその子項目に切り替わる
-    // 2段階構造になっている。
-    const SUGGESTION_POOL = [
-      '写真（フォトリアル）', 'アニメ', '鉛筆画（スケッチ）', '色鉛筆画（スケッチ）',
-    ];
-    const SUGGESTION_COUNT = 4;
-    let currentPicks = [];
+    const SUGGESTION_POOL = ['写真', 'アニメ', '鉛筆', '色鉛筆'];
+    const currentPicks = SUGGESTION_POOL;
     let activeParent = null;
 
     function itemLabel(item) {
@@ -85,19 +70,6 @@
 
     function itemChildren(item) {
       return typeof item === 'string' ? null : item.children;
-    }
-
-    function pickRandomSuggestions(pool, count) {
-      const shuffled = [...pool];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled.slice(0, count);
-    }
-
-    function pickNewSuggestions() {
-      currentPicks = pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT);
     }
 
     // 選択中のスタイルは、常に見えるように候補リストの上に固定表示する。
@@ -194,12 +166,6 @@
       promptInput.dispatchEvent(new Event('input'));
     });
 
-    shuffleBtn.addEventListener('click', () => {
-      pickNewSuggestions();
-      activeParent = null;
-      refreshSuggestionUI();
-    });
-
     try {
       const saved = localStorage.getItem('fcc:selectedStyle');
       if (saved) {
@@ -207,7 +173,6 @@
       }
     } catch (e) {}
 
-    pickNewSuggestions();
     refreshSuggestionUI();
 
     nextBtn.addEventListener('click', () => {
