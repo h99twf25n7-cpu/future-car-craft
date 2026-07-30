@@ -61,13 +61,24 @@
     const suggestionList = document.getElementById('suggestionList');
 
     // 背景候補は道路・サーキット系のみ。この順番のまま常時全て表示する（シャッフルなし）。
-    // 道路は時間帯（朝/昼/夕方/夜）の子項目を持ち、クリックすると2段階目の候補に切り替わる。
+    // どちらも「時間帯」→「天気」の2段階の子項目を持ち、クリックするたびに候補が
+    // 一段階ずつ絞り込まれる（例：道路 → 朝 → 晴れの朝の道路）。
+    const TIME_OF_DAY = ['朝', '昼', '夕方', '夜'];
+    const WEATHER = ['晴れ', '雨', '雪', '曇り'];
+
+    function buildTimeChildren(place) {
+      return TIME_OF_DAY.map((time) => ({
+        label: time,
+        children: WEATHER.map((weather) => `${weather}の${time}の${place}`),
+      }));
+    }
+
     const SUGGESTION_POOL = [
-      { label: '道路', children: ['朝の道路', '昼の道路', '夕方の道路', '夜の道路'] },
-      'サーキット',
+      { label: '道路', children: buildTimeChildren('道路') },
+      { label: 'サーキット', children: buildTimeChildren('サーキット') },
     ];
     let currentPicks = [];
-    let activeParent = null;
+    let activePath = [];
 
     function itemLabel(item) {
       return typeof item === 'string' ? item : item.label;
@@ -75,6 +86,10 @@
 
     function itemChildren(item) {
       return typeof item === 'string' ? null : item.children;
+    }
+
+    function currentItems() {
+      return activePath.length ? itemChildren(activePath[activePath.length - 1]) : currentPicks;
     }
 
     function pickNewSuggestions() {
@@ -96,18 +111,18 @@
     }
 
     // 選択中の背景は並び替えず、その場を空白の穴にして位置を保持する。
-    // 子項目を持つ候補は、そこから2段階目の候補一覧に切り替えられる。
+    // 子項目を持つ候補は、そこからさらに深い候補一覧に切り替えられる（複数段階に対応）。
     function renderSuggestions() {
       const value = promptInput.value.trim();
-      const items = activeParent ? itemChildren(activeParent) : currentPicks;
+      const items = currentItems();
       suggestionList.innerHTML = '';
 
-      if (activeParent) {
+      if (activePath.length) {
         const backChip = document.createElement('button');
         backChip.type = 'button';
         backChip.className = 'suggestion-chip suggestion-chip--back';
         backChip.dataset.action = 'back';
-        backChip.textContent = `← ${itemLabel(activeParent)}`;
+        backChip.textContent = `← ${itemLabel(activePath[activePath.length - 1])}`;
         suggestionList.appendChild(backChip);
       }
 
@@ -149,7 +164,7 @@
     // 背景は複数選択不可。候補チップをクリックすると既存の選択を置き換える単一選択として動作する。
     suggestionList.addEventListener('click', (e) => {
       if (e.target.closest('[data-action="back"]')) {
-        activeParent = null;
+        activePath.pop();
         renderSuggestions();
         return;
       }
@@ -161,8 +176,9 @@
       promptInput.dispatchEvent(new Event('input'));
 
       if (chip.classList.contains('has-children')) {
-        const items = activeParent ? itemChildren(activeParent) : currentPicks;
-        activeParent = items.find((it) => itemLabel(it) === chip.dataset.value) || null;
+        const items = currentItems();
+        const found = items.find((it) => itemLabel(it) === chip.dataset.value);
+        if (found) activePath.push(found);
         renderSuggestions();
       }
     });
