@@ -430,9 +430,9 @@ html, body {
   gap: 2.6rem;
 }
 
-/* Pulled out of flow and anchored near the 38.2% golden-ratio line,
-   matching phi-grid's h-38 guide. Fixed offset — does not move when
-   selecting suggestions grows the page below it. */
+/* Pulled out of flow and anchored near the 38.2% golden-ratio line.
+   Fixed offset — does not move when selecting suggestions grows the
+   page below it. */
 .step-header {
   position: absolute;
   top: 38.2vh;
@@ -578,8 +578,8 @@ html, body {
 }
 
 /* Pulled out of flow and anchored so its bottom edge sits exactly on
-   the viewport's 50%-height guide line (phi-grid's center cross), the
-   same technique as .subtitle on the top page. Fixed regardless of
+   the viewport's 50%-height guide line, the same technique as
+   .subtitle on the top page. Fixed regardless of
    how many items are selected — selecting more never moves this box,
    since it no longer depends on .prompt-box's flex flow at all. */
 .prompt-input {
@@ -1190,102 +1190,3 @@ body.page-scroll {
   }
 }
 
-/* ============================================================
-   Golden-ratio guide overlay — floating control injected by
-   phi-grid.js. Purely additive UI; toggled on/off, hidden by
-   default, does not alter existing layout.
-   ============================================================ */
-.phi-grid {
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.phi-grid-visible .phi-grid {
-  opacity: 1;
-}
-
-.phi-grid__line {
-  position: absolute;
-  background: rgba(255, 207, 92, 0.55);
-  box-shadow: 0 0 6px rgba(255, 207, 92, 0.35);
-}
-
-.phi-grid__line--v-38,
-.phi-grid__line--v-62 {
-  top: 0;
-  bottom: 0;
-  width: 1px;
-}
-
-.phi-grid__line--v-38 { left: 38.2%; }
-.phi-grid__line--v-62 { left: 61.8%; }
-
-.phi-grid__line--h-38,
-.phi-grid__line--h-62 {
-  left: 0;
-  right: 0;
-  height: 1px;
-}
-
-.phi-grid__line--h-38 { top: 38.2%; }
-.phi-grid__line--h-62 { top: 61.8%; }
-
-.phi-grid__diagonals {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.phi-grid__diagonals line {
-  stroke: rgba(255, 207, 92, 0.4);
-  stroke-width: 1px;
-}
-
-.phi-grid__diagonals line.phi-grid__diagonals-corner {
-  stroke: rgba(255, 207, 92, 0.28);
-}
-
-.phi-grid__diagonals line.phi-grid__diagonals-cross {
-  stroke: rgba(255, 207, 92, 0.22);
-}
-
-.phi-grid-toggle {
-  position: fixed;
-  top: calc(1.1rem + env(safe-area-inset-top));
-  right: calc(1.1rem + env(safe-area-inset-right));
-  z-index: 200;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(var(--clr-white-rgb), 0.25);
-  background: rgba(6, 9, 16, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: rgba(var(--clr-white-rgb), 0.6);
-  font-size: clamp(var(--fs-1), 2vw, var(--fs-2));
-  font-weight: 700;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.phi-grid-toggle:hover,
-.phi-grid-toggle:focus-visible {
-  border-color: #ffcf5c;
-  outline: none;
-}
-
-.phi-grid-toggle.is-active {
-  color: #ffcf5c;
-  border-color: #ffcf5c;
-  box-shadow: 0 0 18px rgba(255, 207, 92, 0.35);
-}
