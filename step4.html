@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
   <title>FUTURE CAR CRAFT — 背景を選択</title>
-  <link rel="stylesheet" href="style.css?v=20260730" />
-  <script src="phi-grid.js?v=20260730"></script>
+  <link rel="stylesheet" href="style.css" />
+  <script src="phi-grid.js"></script>
 </head>
 <body class="page-scroll">
 
@@ -25,7 +25,7 @@
       type="text"
       id="backgroundPrompt"
       class="prompt-input"
-      placeholder="例：サーキット、峠道、高速道路..."
+      placeholder="例：都市の夜景、砂漠、宇宙..."
       maxlength="80"
       autocomplete="off"
       aria-label="背景"
@@ -35,6 +35,14 @@
       <p class="prompt-hint">未入力の場合はスタジオ背景で生成されます</p>
       <div class="suggestion-selected" id="selectedList" aria-label="選択中" hidden></div>
       <div class="suggestion-list" id="suggestionList" aria-label="候補"></div>
+      <button type="button" class="suggestion-shuffle" id="shuffleBtn">
+        <svg class="suggestion-shuffle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span>候補を入れ替える</span>
+      </button>
     </div>
 
     <div class="step-actions">
@@ -59,26 +67,21 @@
     const nextBtn = document.getElementById('nextBtn');
     const selectedList = document.getElementById('selectedList');
     const suggestionList = document.getElementById('suggestionList');
+    const shuffleBtn = document.getElementById('shuffleBtn');
 
-    // 背景候補は道路・サーキット系のみ。この順番のまま常時全て表示する（シャッフルなし）。
-    // どちらも「時間帯」→「天気」の2段階の子項目を持ち、クリックするたびに候補が
-    // 一段階ずつ絞り込まれる（例：道路 → 朝 → 晴れの朝の道路）。
-    const TIME_OF_DAY = ['朝', '昼', '夕方', '夜'];
-    const WEATHER = ['晴れ', '雨', '雪', '曇り'];
-
-    function buildTimeChildren(place) {
-      return TIME_OF_DAY.map((time) => ({
-        label: time,
-        children: WEATHER.map((weather) => `${weather}の${time}の${place}`),
-      }));
-    }
-
+    // 現実的なロケーション＋近未来コンセプトに合う背景を混ぜたプール。一部の項目は
+    // さらに子項目を持ち、クリックすると候補リストがその子項目に切り替わる
+    // 2段階構造になっている。
     const SUGGESTION_POOL = [
-      { label: '道路', children: buildTimeChildren('道路') },
-      { label: 'サーキット', children: buildTimeChildren('サーキット') },
+      '都市の夜景', 'サーキット', '砂漠', '山道',
+      { label: '海辺', children: ['海岸線の道路', '海沿いのハイウェイ', 'ビーチ'] },
+      '雪景色', '森林', '夕焼けの草原',
+      { label: '近未来都市', children: ['サイバーパンク街', 'ネオン街', 'スカイウェイ'] },
+      '宇宙', 'スタジオ（無地背景）',
     ];
+    const SUGGESTION_COUNT = 6;
     let currentPicks = [];
-    let activePath = [];
+    let activeParent = null;
 
     function itemLabel(item) {
       return typeof item === 'string' ? item : item.label;
@@ -88,12 +91,17 @@
       return typeof item === 'string' ? null : item.children;
     }
 
-    function currentItems() {
-      return activePath.length ? itemChildren(activePath[activePath.length - 1]) : currentPicks;
+    function pickRandomSuggestions(pool, count) {
+      const shuffled = [...pool];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled.slice(0, count);
     }
 
     function pickNewSuggestions() {
-      currentPicks = SUGGESTION_POOL;
+      currentPicks = pickRandomSuggestions(SUGGESTION_POOL, SUGGESTION_COUNT);
     }
 
     // 選択中の背景は、常に見えるように候補リストの上に固定表示する。
@@ -111,18 +119,18 @@
     }
 
     // 選択中の背景は並び替えず、その場を空白の穴にして位置を保持する。
-    // 子項目を持つ候補は、そこからさらに深い候補一覧に切り替えられる（複数段階に対応）。
+    // 子項目を持つ候補は、そこから2段階目の候補一覧に切り替えられる。
     function renderSuggestions() {
       const value = promptInput.value.trim();
-      const items = currentItems();
+      const items = activeParent ? itemChildren(activeParent) : currentPicks;
       suggestionList.innerHTML = '';
 
-      if (activePath.length) {
+      if (activeParent) {
         const backChip = document.createElement('button');
         backChip.type = 'button';
         backChip.className = 'suggestion-chip suggestion-chip--back';
         backChip.dataset.action = 'back';
-        backChip.textContent = `← ${itemLabel(activePath[activePath.length - 1])}`;
+        backChip.textContent = `← ${itemLabel(activeParent)}`;
         suggestionList.appendChild(backChip);
       }
 
@@ -164,7 +172,7 @@
     // 背景は複数選択不可。候補チップをクリックすると既存の選択を置き換える単一選択として動作する。
     suggestionList.addEventListener('click', (e) => {
       if (e.target.closest('[data-action="back"]')) {
-        activePath.pop();
+        activeParent = null;
         renderSuggestions();
         return;
       }
@@ -176,9 +184,8 @@
       promptInput.dispatchEvent(new Event('input'));
 
       if (chip.classList.contains('has-children')) {
-        const items = currentItems();
-        const found = items.find((it) => itemLabel(it) === chip.dataset.value);
-        if (found) activePath.push(found);
+        const items = activeParent ? itemChildren(activeParent) : currentPicks;
+        activeParent = items.find((it) => itemLabel(it) === chip.dataset.value) || null;
         renderSuggestions();
       }
     });
@@ -189,6 +196,12 @@
       if (!chip) return;
       promptInput.value = '';
       promptInput.dispatchEvent(new Event('input'));
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+      pickNewSuggestions();
+      activeParent = null;
+      refreshSuggestionUI();
     });
 
     try {

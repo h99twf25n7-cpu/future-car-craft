@@ -636,7 +636,6 @@ html, body {
   justify-content: center;
   gap: 0.6rem;
   padding-bottom: 0.6rem;
-  margin-bottom: 0.8rem;
   border-bottom: 1px solid rgba(var(--clr-accent-rgb), 0.15);
 }
 
@@ -937,10 +936,7 @@ html, body {
   transform: none;
   width: 100%;
   height: 56px;
-  /* 32px blur bleeds past the box's own edges (filter: blur isn't
-     clipped to layout bounds), so a plain 0.5rem gap let the glow's
-     soft edge overlap the selected-color chips right below it. */
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Contained within its own box (unlike the floating .car-preview's glow,
