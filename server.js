@@ -44,6 +44,7 @@ app.post('/api/generate-image', async (req, res) => {
         prompt: fullPrompt,
         size: '1536x1024',
         quality: 'low',
+        output_format: 'jpeg',
       }),
     });
 
@@ -64,7 +65,7 @@ app.post('/api/generate-image', async (req, res) => {
     }
 
     res.json({
-      mimeType: 'image/png',
+      mimeType: 'image/jpeg',
       data: b64,
     });
   } catch (err) {
