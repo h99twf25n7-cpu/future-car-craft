@@ -290,6 +290,27 @@
       } catch (e) {}
     });
 
+    // スペースキーを区切り文字「 × 」に変換し、自由入力だけで複数項目を
+    // 組み合わせられるようにする。IME変換中（isComposing）のスペースは
+    // 候補選択操作なので対象外にする。
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key !== ' ' || e.isComposing) return;
+      const el = promptInput;
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      const before = el.value.slice(0, start);
+      const after = el.value.slice(end);
+      // 先頭や、既に区切り済みの直後では何も挿入しない。
+      if (!before.trim() || before.endsWith(COMBINE_SEPARATOR) || before.endsWith(' ')) {
+        e.preventDefault();
+        return;
+      }
+      e.preventDefault();
+      el.value = before + COMBINE_SEPARATOR + after;
+      const pos = (before + COMBINE_SEPARATOR).length;
+      el.setSelectionRange(pos, pos);
+      el.dispatchEvent(new Event('input'));
+    });
 
     // チップは入れ替え機能で作り直されるため、コンテナへのイベント委譲で処理する。
     suggestionList.addEventListener('click', (e) => {
