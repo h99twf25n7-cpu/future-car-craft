@@ -162,12 +162,6 @@
       saveBackground();
     });
 
-    promptInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.isComposing) {
-        nextBtn.click();
-      }
-    });
-
     // 背景は複数選択不可。候補チップをクリックすると既存の選択を置き換える単一選択として動作する。
     suggestionList.addEventListener('click', (e) => {
       if (e.target.closest('[data-action="back"]')) {

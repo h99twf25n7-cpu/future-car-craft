@@ -431,12 +431,6 @@
       applyColors();
     });
 
-    promptInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.isComposing && !nextBtn.disabled) {
-        nextBtn.click();
-      }
-    });
-
     suggestionList.addEventListener('click', (e) => {
       if (e.target.closest('[data-action="back"]')) {
         activeParent = null;

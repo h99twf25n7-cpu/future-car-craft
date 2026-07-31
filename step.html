@@ -290,14 +290,6 @@
       } catch (e) {}
     });
 
-    promptInput.addEventListener('keydown', (e) => {
-      // IME変換確定のEnterでも 'Enter' キーイベントが発火するため、
-      // isComposing中は次へ進まないようにする（誤って次ステップに
-      // 進んでしまい入力内容が反映されないバグの原因だった）。
-      if (e.key === 'Enter' && !e.isComposing && !nextBtn.disabled) {
-        nextBtn.click();
-      }
-    });
 
     // チップは入れ替え機能で作り直されるため、コンテナへのイベント委譲で処理する。
     suggestionList.addEventListener('click', (e) => {

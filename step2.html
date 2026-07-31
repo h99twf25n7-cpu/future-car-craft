@@ -291,12 +291,6 @@
       } catch (e) {}
     });
 
-    promptInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.isComposing && !nextBtn.disabled) {
-        nextBtn.click();
-      }
-    });
-
     // チップは入れ替え機能で作り直されるため、コンテナへのイベント委譲で処理する。
     suggestionList.addEventListener('click', (e) => {
       if (e.target.closest('[data-action="back"]')) {
