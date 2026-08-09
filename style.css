@@ -1065,7 +1065,9 @@ body.page-scroll {
 
 .ai-image__result {
   width: min(100%, 480px);
-  aspect-ratio: 148 / 100;
+  /* L判プリント (89mm x 127mm) の横向き比率。旧148/100(=1.48)に近い
+     ため表示サイズはほぼ変わらない。 */
+  aspect-ratio: 127 / 89;
   border: 1.5px solid rgba(var(--clr-accent-rgb), 0.18);
   border-radius: 10px;
   overflow: hidden;
