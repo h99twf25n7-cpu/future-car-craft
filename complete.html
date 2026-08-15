@@ -297,6 +297,42 @@
       }
     }
 
+    // ハガキサイズ (100mm x 148mm) の横向き比率。
+    // 画面上は object-fit: cover でこの比率にトリミングして見せているが、
+    // 元画像（AI生成の1536x1024など）をそのまま保存すると、印刷時に
+    // 画面で見たトリミングと印刷アプリの自動トリミングがずれてしまう。
+    // そのため保存・表示用の画像自体をこの比率に中央トリミングしておく。
+    const PRINT_RATIO = 148 / 100;
+
+    function cropImageToRatio(dataUrl, ratio) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const srcW = img.naturalWidth;
+          const srcH = img.naturalHeight;
+          const srcRatio = srcW / srcH;
+          let cropW = srcW;
+          let cropH = srcH;
+          if (srcRatio > ratio) {
+            cropW = Math.round(srcH * ratio);
+          } else {
+            cropH = Math.round(srcW / ratio);
+          }
+          const cropX = Math.round((srcW - cropW) / 2);
+          const cropY = Math.round((srcH - cropH) / 2);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = cropW;
+          canvas.height = cropH;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+          resolve(canvas.toDataURL('image/jpeg', 0.92));
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+    }
+
     generateImageBtn.addEventListener('click', async () => {
       generateImageBtn.disabled = true;
       aiImageStatus.textContent = '画像を生成しています…';
@@ -321,7 +357,8 @@
 
         stopProgress();
         setProgress(100);
-        aiImageImg.src = `data:${data.mimeType};base64,${data.data}`;
+        const rawDataUrl = `data:${data.mimeType};base64,${data.data}`;
+        aiImageImg.src = await cropImageToRatio(rawDataUrl, PRINT_RATIO);
         aiImageResult.hidden = false;
         aiImageStatus.textContent = '';
         setTimeout(() => { aiImageProgress.hidden = true; }, 400);
