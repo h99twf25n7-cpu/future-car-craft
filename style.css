@@ -1064,9 +1064,9 @@ body.page-scroll {
 }
 
 .ai-image__result {
-  width: min(100%, 480px);
-  /* ハガキサイズ (100mm x 148mm) の横向き比率。 */
-  aspect-ratio: 148 / 100;
+  width: min(100%, 324px);
+  /* ハガキサイズ (100mm x 148mm) の縦向き比率。表示サイズは変更前(横480px)に近い高さ約480pxを維持。 */
+  aspect-ratio: 100 / 148;
   border: 1.5px solid rgba(var(--clr-accent-rgb), 0.18);
   border-radius: 10px;
   overflow: hidden;
